@@ -1,0 +1,10 @@
+spring:
+  application:
+   name: auth-server
+
+  logging:
+    pattern:
+      correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
+
+server:
+  port: 8083
