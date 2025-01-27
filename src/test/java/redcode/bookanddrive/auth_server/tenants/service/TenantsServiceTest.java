@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
 import redcode.bookanddrive.auth_server.tenants.repository.SchemaRepository;
 import redcode.bookanddrive.auth_server.tenants.repository.TenantRepository;
+import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 
 class TenantsServiceTest {
 
@@ -127,8 +129,8 @@ class TenantsServiceTest {
     void testGetAllTenants_Success() {
         // Arrange
 
-        TenantEntity tenant1 = new TenantEntity(UUID.randomUUID(), "tenant1");
-        TenantEntity tenant2 = new TenantEntity(UUID.randomUUID(), "tenant2");
+        TenantEntity tenant1 = new TenantEntity(UUID.randomUUID(), "tenant1", Set.of(new UserEntity()));
+        TenantEntity tenant2 = new TenantEntity(UUID.randomUUID(), "tenant2", Set.of(new UserEntity()));
 
         when(tenantRepository.findAll()).thenReturn(List.of(tenant1, tenant2));
 

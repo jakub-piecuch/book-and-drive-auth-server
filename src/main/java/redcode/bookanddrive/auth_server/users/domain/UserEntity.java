@@ -10,12 +10,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import redcode.bookanddrive.auth_server.roles.domain.RoleEntity;
 import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
@@ -24,12 +28,19 @@ import redcode.bookanddrive.auth_server.users.model.User;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name = "users")
-public class UserEntity {
+@NoArgsConstructor
+@Table(name = "user")
+public class UserEntity implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
 
     @Column(nullable = false)
     private String username;
@@ -40,11 +51,11 @@ public class UserEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(nullable = false)
     private boolean isActive;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tenants_id", nullable = false)
+    @JoinColumn(name = "tenant_id", nullable = false)
     private TenantEntity tenant;
 
     @OneToMany(fetch = FetchType.LAZY)
@@ -59,9 +70,9 @@ public class UserEntity {
             .password(user.getPassword())
             .isActive(user.isActive())
             .tenant(TenantEntity.from(user.getTenant()))
-            .roles(user.getRoles().stream()
-                .map(RoleEntity::from)
-                .collect(Collectors.toSet()))
+//            .roles(user.getRoles().stream()
+//                .map(RoleEntity::from)
+//                .collect(Collectors.toSet()))
             .build();
     }
 
@@ -71,9 +82,34 @@ public class UserEntity {
             .username(user.getUsername())
             .password(user.getPassword())
             .email(user.getEmail())
-            .roles(user.getRoles().stream()
-                .map(RoleEntity::from)
-                .collect(Collectors.toSet()))
+//            .author(user.getRoles().stream()
+//                .map(RoleEntity::from)
+//                .collect(Collectors.toSet()))
             .build();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
     }
 }

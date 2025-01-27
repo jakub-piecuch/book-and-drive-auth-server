@@ -17,11 +17,11 @@ import redcode.bookanddrive.auth_server.roles.model.Role;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name = "roles")
+@Table(name = "role")
 public class RoleEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     @Column(nullable = false)
     private String name;

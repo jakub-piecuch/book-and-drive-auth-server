@@ -11,21 +11,21 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.catalina.User;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
+import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 
 @Data
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name = "tenants")
+@Table(name = "tenant")
 public class TenantEntity {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     private UUID id;
     private String name;
     @OneToMany(mappedBy = "tenant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<User> users;
+    private Set<UserEntity> users;
 
     public static TenantEntity from(Tenant tenant) {
         return TenantEntity.builder()
