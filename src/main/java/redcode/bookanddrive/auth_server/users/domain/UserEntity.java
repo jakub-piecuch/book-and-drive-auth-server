@@ -12,11 +12,13 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import redcode.bookanddrive.auth_server.roles.domain.RoleEntity;
 import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
+import redcode.bookanddrive.auth_server.users.model.User;
 
 @Data
 @Entity
@@ -48,4 +50,30 @@ public class UserEntity {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "roles_id")
     private Set<RoleEntity> roles;
+
+    public static UserEntity from(User user) {
+        return UserEntity.builder()
+            .id(user.getId())
+            .username(user.getUsername())
+            .email(user.getEmail())
+            .password(user.getPassword())
+            .isActive(user.isActive())
+            .tenant(TenantEntity.from(user.getTenant()))
+            .roles(user.getRoles().stream()
+                .map(RoleEntity::from)
+                .collect(Collectors.toSet()))
+            .build();
+    }
+
+    public static UserEntity update(UserEntity userEntity, User user) {
+        return UserEntity.builder()
+            .id(userEntity.getId())
+            .username(user.getUsername())
+            .password(user.getPassword())
+            .email(user.getEmail())
+            .roles(user.getRoles().stream()
+                .map(RoleEntity::from)
+                .collect(Collectors.toSet()))
+            .build();
+    }
 }
