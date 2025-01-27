@@ -7,7 +7,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/authserver}
     username: ${SPRING_DATASOURCE_USERNAME:authserver}
-    password: ${SPRING_DATASOURCE_PASSWORD:authserversecret}
+    password: ${SPRING_DATASOURCE_PASSWORD:authserversecret!}
     driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
@@ -23,3 +23,9 @@ spring:
 
 server:
   port: 8083
+
+jwt:
+  secret: quBpmybUJ8U1cFc+9AevnmWg70OoJhxkAEWoY1iSOVwXXKn/QPG12OMm3z1iPSi7BvN6QzCwQaHFXW3TEtUBHxnbrMNMQgvZo6g4y1LGbPizPGnGnLGYLRJyQLJomX0KWJpexbACd0NkMlIe3QxoxTIfX/9kbCyxMgar28Mb5IqNpu7xXYXNSRKkujUj0T1T9/5RTmSKRYVwpjmq0JumTuG3MH9RwPe/y0omblAlo8eNXJVph1m396xjgZqrdBXiwk9QJJF88FubtByNaCZeNCbw0UjQ3gnlocW939ML2D6Zknp6gm8nXFbmuSRRDHgFxTUBP68/sCMk2J9gZgCwDMMpEU5BPpuXhWobDTjsJqI=
+  token:
+    lifespan: 36000
+

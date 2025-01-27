@@ -16,18 +16,18 @@ import redcode.bookanddrive.auth_server.users.service.UsersService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UsersController {
 
     private final UsersService usersService;
 
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     public ResponseEntity<UsersResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         User user = User.from(request);
         User savedUser = usersService.create(user);
         UsersResponse response = UsersResponse.from(savedUser);
+
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-
 }

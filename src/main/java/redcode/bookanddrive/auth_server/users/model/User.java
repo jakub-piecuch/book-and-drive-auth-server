@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import redcode.bookanddrive.auth_server.roles.model.Role;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
 import redcode.bookanddrive.auth_server.users.controller.dto.CreateUserRequest;
@@ -13,11 +14,14 @@ import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 
 @Data
 @Builder(toBuilder = true)
+@NoArgsConstructor
 @AllArgsConstructor
 public class User {
     private UUID id;
     private String username;
     private String email;
+    private String firstName;
+    private String lastName;
     private String password;
     private boolean isActive;
     private Tenant tenant;
@@ -26,6 +30,8 @@ public class User {
     public static User from(UserEntity entity) {
         return User.builder()
             .id(entity.getId())
+            .firstName(entity.getFirstName())
+            .lastName(entity.getLastName())
             .username(entity.getUsername())
             .email(entity.getEmail())
             .password(entity.getPassword())

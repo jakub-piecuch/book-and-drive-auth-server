@@ -38,7 +38,7 @@ class ITTenantsControllerTest {
 
     @BeforeEach
     void clearDatabase(@Autowired JdbcTemplate jdbcTemplate) {
-        JdbcTestUtils.deleteFromTables(jdbcTemplate, "admin.tenant");
+        JdbcTestUtils.deleteFromTables(jdbcTemplate, "tenant");
     }
 
     @Test
