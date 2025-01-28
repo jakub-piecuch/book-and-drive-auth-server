@@ -1,5 +1,6 @@
 package redcode.bookanddrive.auth_server.users.model;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -7,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import redcode.bookanddrive.auth_server.roles.model.Role;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
 import redcode.bookanddrive.auth_server.users.controller.dto.CreateUserRequest;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
@@ -25,7 +25,7 @@ public class User {
     private String password;
     private boolean isActive;
     private Tenant tenant;
-    private Set<Role> roles;
+    private Set<RoleEnum> roles = new HashSet<>();
 
     public static User from(UserEntity entity) {
         return User.builder()
@@ -38,19 +38,18 @@ public class User {
             .isActive(entity.isActive())
             .tenant(Tenant.from(entity.getTenant()))
             .roles(entity.getRoles().stream()
-                .map(Role::from)
+                .map(Enum::toString)
+                .map(RoleEnum::valueOf)
                 .collect(Collectors.toSet()))
             .build();
     }
 
     public static User from(CreateUserRequest request) {
         return User.builder()
-            .username(request.username())
-            .password(request.password())
-            .email(request.email())
-            .roles(request.roles().stream()
-                .map(uuid -> Role.builder().id(uuid).build())
-                .collect(Collectors.toSet()))
+            .username(request.getUsername())
+            .password(request.getPassword())
+            .email(request.getEmail())
+            .roles(request.getRoles())
             .build();
     }
 }

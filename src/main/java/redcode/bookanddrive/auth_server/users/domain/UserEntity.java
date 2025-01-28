@@ -2,25 +2,27 @@ package redcode.bookanddrive.auth_server.users.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import redcode.bookanddrive.auth_server.roles.domain.RoleEntity;
 import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
 
@@ -29,7 +31,7 @@ import redcode.bookanddrive.auth_server.users.model.User;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "user")
+@Table(name = "_user")
 public class UserEntity implements UserDetails {
 
     @Id
@@ -54,13 +56,13 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private boolean isActive;
 
+    @Enumerated(EnumType.STRING)
+    private Set<RoleEnumEntity> roles;
+
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tenant_id", nullable = false)
     private TenantEntity tenant;
-
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "roles_id")
-    private Set<RoleEntity> roles;
 
     public static UserEntity from(User user) {
         return UserEntity.builder()
@@ -69,10 +71,12 @@ public class UserEntity implements UserDetails {
             .email(user.getEmail())
             .password(user.getPassword())
             .isActive(user.isActive())
+            .roles(user.getRoles().stream()
+                .map(Enum::toString)
+                .map(RoleEnumEntity::valueOf)
+                .collect(Collectors.toSet()))
             .tenant(TenantEntity.from(user.getTenant()))
-//            .roles(user.getRoles().stream()
-//                .map(RoleEntity::from)
-//                .collect(Collectors.toSet()))
+
             .build();
     }
 
@@ -82,15 +86,18 @@ public class UserEntity implements UserDetails {
             .username(user.getUsername())
             .password(user.getPassword())
             .email(user.getEmail())
-//            .author(user.getRoles().stream()
-//                .map(RoleEntity::from)
-//                .collect(Collectors.toSet()))
+            .roles(user.getRoles().stream()
+                .map(Enum::toString)
+                .map(RoleEnumEntity::valueOf)
+                .collect(Collectors.toSet()))
             .build();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return roles.stream().map(RoleEnumEntity::getScope)
+            .map(SimpleGrantedAuthority::new)
+            .collect(Collectors.toSet());
     }
 
     @Override

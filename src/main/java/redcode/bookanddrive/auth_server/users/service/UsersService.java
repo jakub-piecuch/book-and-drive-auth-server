@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
+import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.repository.UsersRepository;
@@ -18,6 +19,7 @@ public class UsersService {
 
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TenantContext tenantContext;
 
     public User create(User user) {
         String encryptedPassword = passwordEncoder.encode(user.getPassword());

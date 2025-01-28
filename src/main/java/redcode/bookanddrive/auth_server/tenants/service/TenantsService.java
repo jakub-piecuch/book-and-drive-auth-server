@@ -24,11 +24,7 @@ public class TenantsService {
         TenantEntity tenantEntity = TenantEntity.from(tenant);
 
         try {
-
             tenantRepository.save(tenantEntity);
-            schemaRepository.createSchema(schemaName);
-//            migrationProvider.configureFlywayFor(schemaName).migrate();
-
         } catch (Exception e) {
             if (e.getCause().toString().contains(DUPLICATE_KEY_VALUE_VIOLATES_UNIQUE_CONSTRAINT)) {
                 throw DuplicateResourceException.of("Tenant " + schemaName + " already exists.", "duplicate_value");
