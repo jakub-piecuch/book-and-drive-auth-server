@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import redcode.bookanddrive.auth_server.users.domain.RoleEnumEntity;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 import redcode.bookanddrive.auth_server.users.repository.UsersRepository;
 
@@ -24,7 +25,7 @@ public class UserDetailsServiceConfig {
             }
 
             Set<GrantedAuthority> authorities = user.get().getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
+                .map(RoleEnumEntity::getScope)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
             return new org.springframework.security.core.userdetails.User(user.get().getUsername(), user.get().getPassword(), authorities);

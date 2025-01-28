@@ -2,9 +2,8 @@ package redcode.bookanddrive.auth_server.users.controller.dto;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.Builder;
-import redcode.bookanddrive.auth_server.roles.model.Role;
+import redcode.bookanddrive.auth_server.users.model.RoleEnum;
 import redcode.bookanddrive.auth_server.users.model.User;
 
 @Builder
@@ -15,7 +14,7 @@ public record UsersResponse(
     String email,
     UUID tenantId,
     boolean isActive,
-    Set<UUID> roleIds
+    Set<RoleEnum> roleIds
 ) {
     public static UsersResponse from(User user) {
         return UsersResponse.builder()
@@ -23,10 +22,7 @@ public record UsersResponse(
             .username(user.getUsername())
             .email(user.getEmail())
             .isActive(user.isActive())
-            .roleIds(user.getRoles().stream()
-                .map(Role::getId)
-                .collect(Collectors.toSet())
-            )
+            .roleIds(user.getRoles())
             .build();
     }
 }

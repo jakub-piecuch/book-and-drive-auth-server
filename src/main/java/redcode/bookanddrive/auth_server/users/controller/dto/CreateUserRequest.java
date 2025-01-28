@@ -1,13 +1,22 @@
 package redcode.bookanddrive.auth_server.users.controller.dto;
 
+import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import redcode.bookanddrive.auth_server.users.model.RoleEnum;
 
-public record CreateUserRequest(
-    String username,
-    String password,
-    String email,
-    Set<UUID> roles
-) {
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateUserRequest{
+    @NotNull
+    private String username;
+    @NotNull
+    private String password;
+    @NotNull
+    private String email;
+    private Set<RoleEnum> roles = new HashSet<>();
 }

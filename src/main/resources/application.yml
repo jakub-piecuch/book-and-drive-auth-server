@@ -15,11 +15,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 
-  logging:
-    pattern:
-      correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
+logging:
+  pattern:
+    correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
 
 server:
   port: 8083
@@ -29,3 +29,6 @@ jwt:
   token:
     lifespan: 36000
 
+multitenancy:
+  http:
+    header: X-Tenant-Id
