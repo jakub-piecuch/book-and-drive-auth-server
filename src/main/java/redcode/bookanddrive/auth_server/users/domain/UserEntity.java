@@ -1,5 +1,6 @@
 package redcode.bookanddrive.auth_server.users.domain;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
@@ -23,12 +25,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import redcode.bookanddrive.auth_server.passwords.domain.OneTimeTokenEntity;
 import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
 
 @Data
 @Entity
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "_user")
@@ -43,9 +46,6 @@ public class UserEntity implements UserDetails {
 
     @Column(nullable = false)
     private String lastName;
-
-    @Column(nullable = false)
-    private String username;
 
     @Column(nullable = false)
     private String email;
@@ -64,10 +64,12 @@ public class UserEntity implements UserDetails {
     @JoinColumn(name = "tenant_id", nullable = false)
     private TenantEntity tenant;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private OneTimeTokenEntity oneTimeToken;
+
     public static UserEntity from(User user) {
         return UserEntity.builder()
             .id(user.getId())
-            .username(user.getUsername())
             .email(user.getEmail())
             .password(user.getPassword())
             .isActive(user.isActive())
@@ -83,7 +85,6 @@ public class UserEntity implements UserDetails {
     public static UserEntity update(UserEntity userEntity, User user) {
         return UserEntity.builder()
             .id(userEntity.getId())
-            .username(user.getUsername())
             .password(user.getPassword())
             .email(user.getEmail())
             .roles(user.getRoles().stream()
@@ -98,6 +99,11 @@ public class UserEntity implements UserDetails {
         return roles.stream().map(RoleEnumEntity::getScope)
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 
     @Override

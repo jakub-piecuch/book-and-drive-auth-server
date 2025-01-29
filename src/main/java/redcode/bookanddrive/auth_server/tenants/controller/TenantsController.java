@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.WebRequest;
 import redcode.bookanddrive.auth_server.tenants.controller.dto.CreateTenantRequest;
 import redcode.bookanddrive.auth_server.tenants.controller.dto.TenantResponse;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
@@ -23,7 +22,7 @@ public class TenantsController {
     private final TenantsService schemaService;
 
     @PostMapping
-    public ResponseEntity<TenantResponse> createTenant(@Valid @RequestBody CreateTenantRequest request, WebRequest webRequest) {
+    public ResponseEntity<TenantResponse> createTenant(@Valid @RequestBody CreateTenantRequest request) {
         log.info("Adding tenant: {}", request.name());
         Tenant tenant = Tenant.from(request);
         Tenant createdTenant = schemaService.createTenant(tenant);
