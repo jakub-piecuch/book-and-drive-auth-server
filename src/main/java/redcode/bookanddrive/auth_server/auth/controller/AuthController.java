@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import redcode.bookanddrive.auth_server.auth.controller.dto.AuthenticationRequest;
 import redcode.bookanddrive.auth_server.auth.controller.dto.AuthenticationResponse;
+import redcode.bookanddrive.auth_server.auth.controller.dto.OneTimeTokenRequest;
 import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 
 @Slf4j
@@ -29,9 +30,13 @@ public class AuthController {
     private UserDetailsService userDetailsService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> createAuthenticationToken(@Valid @RequestBody AuthenticationRequest authenticationRequest) throws BadCredentialsException {
+    public ResponseEntity<AuthenticationResponse> createAuthenticationToken(
+        @Valid @RequestBody AuthenticationRequest authenticationRequest
+    ) throws BadCredentialsException {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.username(), authenticationRequest.password()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                authenticationRequest.username(), authenticationRequest.password())
+            );
         } catch (BadCredentialsException badCredentialsException) {
             log.error("Incorrect username or password");
             throw badCredentialsException;
@@ -41,5 +46,16 @@ public class AuthController {
         final String jwt = jwtUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(new AuthenticationResponse(jwt));
+    }
+
+    @PostMapping("/one-time-token")
+    public ResponseEntity<Void> generateOneTimeToken(
+        @Valid @RequestBody OneTimeTokenRequest request
+    ) {
+        log.info("Creating One Time Token for: {}", request.email());
+
+
+
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,6 +1,6 @@
 package redcode.bookanddrive.auth_server.roles.service;
 
-import static redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException.RESOURECE_NOT_FOUND;
+import static redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException.RESOURCE_NOT_FOUND;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,14 +43,14 @@ public class RolesService {
                 RoleEntity savedRole = rolesRepository.save(updatedRoleEntity);
                 return Role.from(savedRole);
             })
-            .orElseThrow(() -> ResourceNotFoundException.of(RESOURECE_NOT_FOUND));
+            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
     }
 
     public void deleteById(UUID id) {
         rolesRepository.findById(id)
             .ifPresentOrElse(
                 roleEntity -> rolesRepository.deleteById(id), () -> {
-                    throw ResourceNotFoundException.of(RESOURECE_NOT_FOUND);
+                    throw ResourceNotFoundException.of(RESOURCE_NOT_FOUND);
                 }
             );
     }

@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.tenants.config;
+package redcode.bookanddrive.auth_server.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

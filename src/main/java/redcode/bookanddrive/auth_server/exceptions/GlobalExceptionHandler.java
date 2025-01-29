@@ -90,6 +90,30 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(PasswordsMismatchException.class)
+    public ResponseEntity<ErrorDetails> handlePasswordMismatchException(PasswordsMismatchException ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .reason(HttpStatus.BAD_REQUEST.getReasonPhrase())
+            .message(ex.getMessage())
+            .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorDetails> handleInvalidTokenException(InvalidTokenException ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .reason(HttpStatus.BAD_REQUEST.getReasonPhrase())
+            .message(ex.getMessage())
+            .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
     //     Handle Generic Exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDetails> handleGenericException(

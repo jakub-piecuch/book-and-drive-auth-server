@@ -13,9 +13,9 @@ import redcode.bookanddrive.auth_server.users.model.RoleEnum;
 @AllArgsConstructor
 public class CreateUserRequest{
     @NotNull
-    private String username;
+    private String firstName;
     @NotNull
-    private String password;
+    private String lastName;;
     @NotNull
     private String email;
     private Set<RoleEnum> roles = new HashSet<>();

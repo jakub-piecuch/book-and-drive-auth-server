@@ -18,7 +18,6 @@ import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 @AllArgsConstructor
 public class User {
     private UUID id;
-    private String username;
     private String email;
     private String firstName;
     private String lastName;
@@ -32,7 +31,6 @@ public class User {
             .id(entity.getId())
             .firstName(entity.getFirstName())
             .lastName(entity.getLastName())
-            .username(entity.getUsername())
             .email(entity.getEmail())
             .password(entity.getPassword())
             .isActive(entity.isActive())
@@ -44,11 +42,11 @@ public class User {
             .build();
     }
 
-    public static User from(CreateUserRequest request) {
+    public static User from(CreateUserRequest request, String tenant) {
         return User.builder()
-            .username(request.getUsername())
-            .password(request.getPassword())
+            .firstName(request.getFirstName())
             .email(request.getEmail())
+            .tenant(Tenant.builder().name(tenant).build())
             .roles(request.getRoles())
             .build();
     }
