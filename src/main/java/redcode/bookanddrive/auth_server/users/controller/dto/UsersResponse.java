@@ -9,8 +9,8 @@ import redcode.bookanddrive.auth_server.users.model.User;
 @Builder
 public record UsersResponse(
     UUID id,
-    String username,
-    String password,
+    String firstName,
+    String lastName,
     String email,
     UUID tenantId,
     boolean isActive,
@@ -19,8 +19,10 @@ public record UsersResponse(
     public static UsersResponse from(User user) {
         return UsersResponse.builder()
             .id(user.getId())
-            .username(user.getUsername())
+            .firstName(user.getFirstName())
+            .lastName(user.getLastName())
             .email(user.getEmail())
+            .tenantId(user.getTenant().getId())
             .isActive(user.isActive())
             .roleIds(user.getRoles())
             .build();

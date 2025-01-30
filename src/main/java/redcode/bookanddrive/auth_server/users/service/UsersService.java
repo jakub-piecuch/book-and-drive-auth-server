@@ -8,10 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
+import redcode.bookanddrive.auth_server.passwords.utils.PasswordGenerator;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.repository.UsersRepository;
-import redcode.bookanddrive.auth_server.users.utils.PasswordGenerator;
 
 @Service
 @RequiredArgsConstructor
