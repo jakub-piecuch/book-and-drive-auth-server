@@ -9,7 +9,5 @@ import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 @Repository
 public interface UsersRepository extends JpaRepository<UserEntity, UUID> {
 
-    Optional<UserEntity> findByUsername(String username);
-
     Optional<UserEntity> findByEmail(String email);
 }

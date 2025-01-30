@@ -47,7 +47,7 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -70,6 +70,8 @@ public class UserEntity implements UserDetails {
     public static UserEntity from(User user) {
         return UserEntity.builder()
             .id(user.getId())
+            .firstName(user.getFirstName())
+            .lastName(user.getLastName())
             .email(user.getEmail())
             .password(user.getPassword())
             .isActive(user.isActive())
@@ -78,7 +80,6 @@ public class UserEntity implements UserDetails {
                 .map(RoleEnumEntity::valueOf)
                 .collect(Collectors.toSet()))
             .tenant(TenantEntity.from(user.getTenant()))
-
             .build();
     }
 
@@ -94,9 +95,14 @@ public class UserEntity implements UserDetails {
             .build();
     }
 
+    public void activate() {
+        this.isActive = true;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream().map(RoleEnumEntity::getScope)
+        return roles.stream()
+            .map(RoleEnumEntity::getScope)
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toSet());
     }

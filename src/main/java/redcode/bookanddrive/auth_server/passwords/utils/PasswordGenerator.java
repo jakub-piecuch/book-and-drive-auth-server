@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.users.utils;
+package redcode.bookanddrive.auth_server.passwords.utils;
 
 import java.security.SecureRandom;
 
@@ -7,6 +7,10 @@ public class PasswordGenerator {
     private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String DIGITS = "0123456789";
     private static final String SPECIAL = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+
+    private PasswordGenerator() {
+
+    }
 
     public static String generatePassword(int length, boolean useLower, boolean useUpper,
                                           boolean useDigits, boolean useSpecial) {

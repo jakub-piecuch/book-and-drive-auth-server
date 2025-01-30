@@ -24,7 +24,6 @@ public class PasswordsController {
     public ResponseEntity<String> resetPassword(
         @Valid @RequestBody PasswordResetRequest passwordResetRequest,
         @RequestParam("token") String oneTimeToken
-
     ) {
         log.info("Resetting password for email: {}", passwordResetRequest.email());
 
@@ -32,5 +31,4 @@ public class PasswordsController {
 
         return ResponseEntity.ok("Password has been successfully reset.");
     }
-
 }

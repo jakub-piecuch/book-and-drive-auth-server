@@ -15,7 +15,7 @@ import redcode.bookanddrive.auth_server.config.TenantHttpProperties;
 import redcode.bookanddrive.auth_server.users.controller.dto.CreateUserRequest;
 import redcode.bookanddrive.auth_server.users.controller.dto.UsersResponse;
 import redcode.bookanddrive.auth_server.users.model.User;
-import redcode.bookanddrive.auth_server.users.service.UsersService;
+import redcode.bookanddrive.auth_server.users.service.UsersFacade;
 
 @Slf4j
 @RestController
@@ -23,20 +23,22 @@ import redcode.bookanddrive.auth_server.users.service.UsersService;
 @RequiredArgsConstructor
 public class UsersController {
 
-    private final UsersService usersService;
+    private final UsersFacade usersFacade;
     private final TenantHttpProperties tenantHttpProperties;
 
     // TODO: When Creating new user a one time token should be created and email with it in the url should be already available to click
     // then it will use it to change password and set flag isUsed to true, it will be recreated when trying to reset password
-    @PreAuthorize("")
     @PostMapping()
+    @PreAuthorize("hasAuthority('users:write')")
     public ResponseEntity<UsersResponse> createUser(
         @Valid @RequestBody CreateUserRequest request,
         WebRequest webRequest
     ) {
+        log.info("Creating user with email: {}", request.getEmail());
+
         String tenant = webRequest.getHeader(tenantHttpProperties.getHeader());
         User user = User.from(request, tenant);
-        User savedUser = usersService.create(user);
+        User savedUser = usersFacade.createUserWithTemporaryPassword(user);
         UsersResponse response = UsersResponse.from(savedUser);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
