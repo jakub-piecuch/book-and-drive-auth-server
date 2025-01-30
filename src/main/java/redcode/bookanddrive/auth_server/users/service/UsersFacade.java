@@ -27,7 +27,9 @@ public class UsersFacade {
         User userWithTenantId = user.toBuilder().tenant(tenant).build();
 
         User createdUser = usersService.create(userWithTenantId);
+
         OneTimeToken oneTimeToken = tokenGenerationService.generateToken(createdUser);
+
         emailService.sendEmail(createdUser.getEmail(), oneTimeToken);
 
         log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken);

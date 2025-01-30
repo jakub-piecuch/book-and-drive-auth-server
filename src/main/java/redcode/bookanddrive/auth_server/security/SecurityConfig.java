@@ -41,7 +41,9 @@ public class SecurityConfig {
             .httpBasic(Customizer.withDefaults())
             .formLogin(Customizer.withDefaults())
             .authorizeHttpRequests(request -> request
-                .requestMatchers("/api/users/**").authenticated()
+                .requestMatchers("/api/passwords/reset-request").authenticated()
+                .requestMatchers("/api/passwords/**").permitAll()
+                .requestMatchers("/api/users/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/**").permitAll()
                 .anyRequest().authenticated())

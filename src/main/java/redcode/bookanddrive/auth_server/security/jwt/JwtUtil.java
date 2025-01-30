@@ -3,6 +3,8 @@ package redcode.bookanddrive.auth_server.security.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +58,14 @@ public class JwtUtil {
 
     public String extractUsernameFromToken(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public LocalDateTime extractExpirationDate(String token) {
+        Date expirationDate = extractClaim(token, Claims::getExpiration);
+        LocalDateTime localDateTime = expirationDate.toInstant()
+            .atZone(ZoneId.systemDefault()) // Use system default zone
+            .toLocalDateTime();
+        return localDateTime;
     }
 
     private Date extractExpiration(String token) {
