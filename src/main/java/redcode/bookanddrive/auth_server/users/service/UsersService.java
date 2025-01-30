@@ -53,7 +53,13 @@ public class UsersService {
     public User findById(UUID id) {
         return usersRepository.findById(id)
             .map(User::from)
-            .orElse(null);
+            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
+    }
+
+    public User findByEmail(String email) {
+        return usersRepository.findByEmail(email)
+            .map(User::from)
+            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
     }
 
     public User updateById(UUID id, User user) {

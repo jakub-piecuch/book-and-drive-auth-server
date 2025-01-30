@@ -3,7 +3,7 @@ package redcode.bookanddrive.auth_server.tenants.resolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import redcode.bookanddrive.auth_server.config.TenantHttpProperties;
+import redcode.bookanddrive.auth_server.tenants.config.TenantHttpProperties;
 
 @Component
 @RequiredArgsConstructor

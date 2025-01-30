@@ -35,8 +35,6 @@ public class OneTimeTokenEntity {
 
     private boolean isUsed;
 
-    private boolean isExpired;
-
     @OneToOne(fetch = FetchType.LAZY, optional = false) // Ensures a OneTimeToken cannot exist without a User
     @JoinColumn(name = "_user_id", nullable = false)
     private UserEntity user;
@@ -46,16 +44,7 @@ public class OneTimeTokenEntity {
             .id(oneTimeToken.getId())
             .token(oneTimeToken.getToken())
             .isUsed(oneTimeToken.isUsed())
-            .isExpired(oneTimeToken.isExpired())
             .user(UserEntity.from(oneTimeToken.getUser()))
             .build();
-    }
-
-    public void use() {
-        this.isUsed = true;
-    }
-
-    public void expire() {
-        this.isExpired = true;
     }
 }

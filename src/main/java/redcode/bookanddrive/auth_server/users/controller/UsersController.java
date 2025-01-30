@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
-import redcode.bookanddrive.auth_server.config.TenantHttpProperties;
+import redcode.bookanddrive.auth_server.tenants.config.TenantHttpProperties;
 import redcode.bookanddrive.auth_server.users.controller.dto.CreateUserRequest;
 import redcode.bookanddrive.auth_server.users.controller.dto.UsersResponse;
 import redcode.bookanddrive.auth_server.users.model.User;

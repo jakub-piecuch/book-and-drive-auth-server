@@ -16,15 +16,17 @@ public class OneTimeToken {
     private UUID id;
     private String token;
     private boolean isUsed;
-    private boolean isExpired;
     private User user;
+
+    public void use() {
+        this.isUsed = true;
+    }
 
     public static OneTimeToken from(OneTimeTokenEntity entity) {
         return OneTimeToken.builder()
             .id(entity.getId())
             .token(entity.getToken())
             .isUsed(entity.isUsed())
-            .isExpired(entity.isExpired())
             .user(User.from(entity.getUser()))
             .build();
     }

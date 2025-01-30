@@ -31,3 +31,8 @@ jwt:
 multitenancy:
   http:
     header: X-Tenant-Id
+
+admin-user:
+  tenant: ${ADMIN_TENANT:superadmin}
+  username: ${ADMIN_USERNAME:jakub@admin.com}
+

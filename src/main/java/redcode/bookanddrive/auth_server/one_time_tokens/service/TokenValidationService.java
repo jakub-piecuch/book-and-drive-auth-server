@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
-import redcode.bookanddrive.auth_server.one_time_tokens.domain.OneTimeTokenEntity;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.one_time_tokens.repository.OneTimeTokenRepository;
 import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
@@ -21,9 +20,10 @@ public class TokenValidationService {
     private final OneTimeTokenRepository oneTimeTokenRepository;
     private final JwtUtil jwtUtil;
 
-    public OneTimeToken validate(String oneTimeToken) {
-        String email = jwtUtil.extractUsernameFromToken(oneTimeToken);
-        OneTimeTokenEntity existingToken = oneTimeTokenRepository.findByUserEmail(email)
+    public OneTimeToken validate(OneTimeToken oneTimeToken) {
+        String email = oneTimeToken.getUser().getEmail();
+        OneTimeToken existingToken = oneTimeTokenRepository.findByUserEmail(email)
+            .map(OneTimeToken::from)
             .orElseThrow(() -> {
                 log.error("Token does not exist in he database.");
                 return ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND);
@@ -33,19 +33,17 @@ public class TokenValidationService {
         validateIfUsed(existingToken);
         validateIfExpired(existingToken);
 
-        existingToken.use();
-
-        return OneTimeToken.from(existingToken);
+        return existingToken;
     }
 
-    private void validateIfBelongsToUser(String oneTimeToken, OneTimeTokenEntity existingToken) {
-        if (!Objects.equals(oneTimeToken, existingToken.getToken())) {
+    private void validateIfBelongsToUser(OneTimeToken oneTimeToken, OneTimeToken existingToken) {
+        if (!Objects.equals(oneTimeToken.getToken(), existingToken.getToken())) {
             log.error("Token from the request does not match the user's oneTimeToken.");
             throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
         }
     }
 
-    private void validateIfExpired(OneTimeTokenEntity existingToken) {
+    private void validateIfExpired(OneTimeToken existingToken) {
         LocalDateTime expirationDate = jwtUtil.extractExpirationDate(existingToken.getToken());
         if (expirationDate.isBefore(LocalDateTime.now())) {
             log.error("Token is expired.");
@@ -53,12 +51,10 @@ public class TokenValidationService {
         }
     }
 
-    private void validateIfUsed(OneTimeTokenEntity existingToken) {
+    private void validateIfUsed(OneTimeToken existingToken) {
         if (existingToken.isUsed()) {
             log.error(TOKEN_WAS_USED_ALREADY);
             throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
         }
     }
-
-
 }
