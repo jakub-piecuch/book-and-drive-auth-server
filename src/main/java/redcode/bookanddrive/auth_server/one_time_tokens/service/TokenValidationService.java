@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.passwords.service;
+package redcode.bookanddrive.auth_server.one_time_tokens.service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -7,9 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
-import redcode.bookanddrive.auth_server.passwords.domain.OneTimeTokenEntity;
-import redcode.bookanddrive.auth_server.passwords.model.OneTimeToken;
-import redcode.bookanddrive.auth_server.passwords.repository.OneTimeTokenRepository;
+import redcode.bookanddrive.auth_server.one_time_tokens.domain.OneTimeTokenEntity;
+import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
+import redcode.bookanddrive.auth_server.one_time_tokens.repository.OneTimeTokenRepository;
 import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 
 @Slf4j
@@ -37,25 +37,6 @@ public class TokenValidationService {
 
         return OneTimeToken.from(existingToken);
     }
-
-//    public OneTimeToken validateAndSave (String oneTimeToken) {
-//        String email = jwtUtil.extractUsernameFromToken(oneTimeToken);
-//        OneTimeTokenEntity existingToken = oneTimeTokenRepository.findByUserEmail(email)
-//            .orElseThrow(() -> {
-//                log.error("User does not exist.");
-//                return ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND);
-//            });
-//
-//        validateIfBelongsToUser(oneTimeToken, existingToken);
-//        validateIfUsed(existingToken);
-//        validateIfExpired(existingToken);
-//
-//        existingToken.use();
-//
-//        OneTimeTokenEntity savedToken = oneTimeTokenRepository.save(existingToken);
-//
-//        return OneTimeToken.from(savedToken);
-//    }
 
     private void validateIfBelongsToUser(String oneTimeToken, OneTimeTokenEntity existingToken) {
         if (!Objects.equals(oneTimeToken, existingToken.getToken())) {

@@ -20,7 +20,7 @@ public class UsersService {
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User create(User user) {
+    public User save(User user) {
         String encryptedPassword = passwordEncoder.encode(PasswordGenerator.generatePassword(12));
         User userWithEncryptedPassword = user.toBuilder()
             .password(encryptedPassword)

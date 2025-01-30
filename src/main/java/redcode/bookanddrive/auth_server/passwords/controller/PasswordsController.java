@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
+import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenGenerationService;
+import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenValidationService;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
-import redcode.bookanddrive.auth_server.passwords.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
-import redcode.bookanddrive.auth_server.passwords.service.TokenGenerationService;
-import redcode.bookanddrive.auth_server.passwords.service.TokenValidationService;
 
 @Slf4j
 @RestController()
@@ -31,19 +30,9 @@ public class PasswordsController {
         WebRequest webRequest
     ) {
         String authorization = webRequest.getHeader("Authorization");
-
-        return ResponseEntity.noContent()
-            .build();
-    }
-
-    @PostMapping("/reset-validate")
-    public ResponseEntity<Void> validateTokenGetEmail(
-        @RequestParam("token") String oneTimeJwt
-    ) {
-        OneTimeToken validToken = tokenValidationService.validate(oneTimeJwt);
+        String token = authorization.substring(6);
 
         return ResponseEntity.ok()
-            .header("User-Email:", validToken.getUser().getEmail())
             .build();
     }
 
@@ -52,8 +41,6 @@ public class PasswordsController {
         @Valid @RequestBody PasswordResetRequest passwordResetRequest,
         @RequestParam("token") String oneTimeToken
     ) {
-        log.info("Resetting password for email: {}", passwordResetRequest.email());
-
         passwordsFacade.resetPassword(passwordResetRequest, oneTimeToken);
 
         return ResponseEntity.ok("Password has been successfully reset.");

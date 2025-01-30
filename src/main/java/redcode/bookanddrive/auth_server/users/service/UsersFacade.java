@@ -5,8 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import redcode.bookanddrive.auth_server.emails.EmailService;
-import redcode.bookanddrive.auth_server.passwords.model.OneTimeToken;
-import redcode.bookanddrive.auth_server.passwords.service.TokenGenerationService;
+import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
+import redcode.bookanddrive.auth_server.one_time_tokens.service.OneTimeTokensService;
+import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenGenerationService;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
 import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 import redcode.bookanddrive.auth_server.users.model.User;
@@ -20,18 +21,20 @@ public class UsersFacade {
     private final TokenGenerationService tokenGenerationService;
     private final EmailService emailService;
     private final TenantsService tenantsService;
+    private final OneTimeTokensService oneTimeTokensService;
 
     @Transactional
     public User createUserWithTemporaryPassword(User user) {
         Tenant tenant = tenantsService.getTenantByName(user.getTenant().getName());
         User userWithTenantId = user.toBuilder().tenant(tenant).build();
-
-        User createdUser = usersService.create(userWithTenantId);
+        User createdUser = usersService.save(userWithTenantId);
 
         OneTimeToken oneTimeToken = tokenGenerationService.generateToken(createdUser);
+        oneTimeTokensService.save(oneTimeToken);
 
         emailService.sendEmail(createdUser.getEmail(), oneTimeToken);
 
+        // TODO do wyrzucenia jak beda dzialac emaile
         log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken);
 
         return createdUser;

@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.passwords.domain;
+package redcode.bookanddrive.auth_server.one_time_tokens.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import redcode.bookanddrive.auth_server.passwords.model.OneTimeToken;
+import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 
 @Data

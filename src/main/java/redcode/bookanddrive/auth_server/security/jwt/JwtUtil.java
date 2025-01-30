@@ -11,20 +11,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil {
-    @Value("${jwt.secret}")
-    private String secret;
-    @Value("${jwt.token.lifespan}")
-    private long tokenLifeSpan;
+
+    private final JwtPropertiesConfig jwtPropertiesConfig;
+
+    public JwtUtil(JwtPropertiesConfig jwtPropertiesConfig) {
+        this.jwtPropertiesConfig = jwtPropertiesConfig;
+    }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        return Keys.hmacShaKeyFor(jwtPropertiesConfig.getSecret().getBytes());
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -42,7 +43,7 @@ public class JwtUtil {
             .addClaims(claims)
             .setSubject(username)
             .setIssuedAt(new Date(System.currentTimeMillis()))
-            .setExpiration(new Date(System.currentTimeMillis() + tokenLifeSpan))
+            .setExpiration(new Date(System.currentTimeMillis() + jwtPropertiesConfig.getTokenLifespan()))
             .signWith(getSigningKey())
             .compact();
     }

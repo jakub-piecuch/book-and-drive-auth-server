@@ -1,13 +1,17 @@
 package redcode.bookanddrive.auth_server.passwords.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
+import redcode.bookanddrive.auth_server.one_time_tokens.service.OneTimeTokensService;
+import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenValidationService;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
-import redcode.bookanddrive.auth_server.passwords.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 import redcode.bookanddrive.auth_server.users.service.UsersService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PasswordsFacade {
@@ -24,6 +28,7 @@ public class PasswordsFacade {
         String confirmPassword = passwordResetRequest.confirmPassword();
         String userEmail = jwtUtil.extractUsernameFromToken(oneTimeToken);
 
+        log.info("Resetting password for email: {}", userEmail);
         OneTimeToken validateToken = tokenValidationService.validate(oneTimeToken);
         oneTimeTokensService.save(validateToken);
 

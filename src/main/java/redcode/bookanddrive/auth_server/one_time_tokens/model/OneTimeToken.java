@@ -1,11 +1,11 @@
-package redcode.bookanddrive.auth_server.passwords.model;
+package redcode.bookanddrive.auth_server.one_time_tokens.model;
 
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import redcode.bookanddrive.auth_server.passwords.domain.OneTimeTokenEntity;
+import redcode.bookanddrive.auth_server.one_time_tokens.domain.OneTimeTokenEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
 
 @Data
