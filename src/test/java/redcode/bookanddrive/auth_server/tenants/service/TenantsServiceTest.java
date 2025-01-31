@@ -5,10 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -27,9 +25,6 @@ import redcode.bookanddrive.auth_server.tenants.repository.TenantsRepository;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 
 class TenantsServiceTest {
-
-    @Mock
-    private SchemaRepository schemaRepository;
 
     @Mock
     private TenantsRepository tenantsRepository;
@@ -54,13 +49,6 @@ class TenantsServiceTest {
         // Mock tenant repository save method
         when(tenantsRepository.save(any())).thenReturn(tenantEntity);
 
-        // Mock schema repository createSchema (void method)
-        doNothing().when(schemaRepository).createSchema(tenant.getName());
-
-        // Mock the Flyway instance returned by configureFlywayFor
-//        Flyway flywayMock = mock(Flyway.class);
-//        when(migrationProvider.configureFlywayFor(tenant.getName())).thenReturn(flywayMock);
-
         // Act
         Tenant result = tenantsService.createTenant(tenant);
 
@@ -68,11 +56,7 @@ class TenantsServiceTest {
         assertNotNull(result);
         assertEquals(tenant.getName(), result.getName());
 
-        // Verify interactions
         verify(tenantsRepository).save(any(TenantEntity.class));
-        verify(schemaRepository).createSchema(tenant.getName());
-//        verify(migrationProvider).configureFlywayFor(tenant.getName());
-//        verify(flywayMock).migrate();
     }
 
     @Test
@@ -95,8 +79,6 @@ class TenantsServiceTest {
         assertEquals("Tenant tenant1 already exists.", thrown.getMessage());
         assertEquals("duplicate_value", thrown.getReason());
         verify(tenantsRepository).save(any(TenantEntity.class));
-        verifyNoInteractions(schemaRepository);
-//        verifyNoInteractions(migrationProvider);
     }
 
     @Test
@@ -120,8 +102,6 @@ class TenantsServiceTest {
         assertNotNull(thrown);
         assertEquals("Tenant tenant1 already exists.", thrown.getMessage());
         verify(tenantsRepository).save(any(TenantEntity.class));
-        verifyNoInteractions(schemaRepository);
-//        verifyNoInteractions(migrationProvider);
     }
 
     @Test

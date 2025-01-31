@@ -43,7 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(request -> request
                 .requestMatchers("/api/passwords/reset-request").authenticated()
                 .requestMatchers("/api/passwords/**").permitAll()
-                .requestMatchers("/api/users/**").permitAll()
+                .requestMatchers("/api/users/**").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/**").permitAll()
                 .anyRequest().authenticated())

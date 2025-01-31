@@ -1,9 +1,6 @@
 package redcode.bookanddrive.auth_server.users.initializer;
 
-import static redcode.bookanddrive.auth_server.users.model.RoleEnum.SUPER_ADMIN;
-
 import java.util.Optional;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -49,7 +46,6 @@ public class AdminUserInitializer {
         Optional<User> existingAdmin = userRepository.findByEmail(usersConfig.getUsername())
             .map(User::from);
 
-        // 1️⃣ Ensure Tenant is Created First
         if (existingTenant.isEmpty()) {
             Tenant tenant = Tenant.builder()
                 .name(usersConfig.getTenant())
@@ -68,7 +64,7 @@ public class AdminUserInitializer {
                 .lastName("admin")
                 .email(usersConfig.getUsername())
                 .password(passwordEncoder.encode(randomPassword))
-                .roles(Set.of(SUPER_ADMIN))
+                .roles(usersConfig.getRoles())
                 .tenant(Tenant.from(savedTenant))
                 .build();
 

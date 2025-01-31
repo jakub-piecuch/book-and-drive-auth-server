@@ -35,4 +35,5 @@ multitenancy:
 admin-user:
   tenant: ${ADMIN_TENANT:superadmin}
   username: ${ADMIN_USERNAME:jakub@admin.com}
+  roles: ${ADMIN_USER_ROLES_ARRAY:[SUPER_ADMIN, USER_WRITE, USER_READ]}
 

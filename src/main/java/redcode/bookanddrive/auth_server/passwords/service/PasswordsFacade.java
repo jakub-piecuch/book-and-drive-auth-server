@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.OneTimeTokensService;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenGenerationService;
@@ -56,7 +57,14 @@ public class PasswordsFacade {
     @Transactional
     public void sendForgotPasswordEmail(OneTimeToken oneTimeToken) {
         User existingUser = usersService.findByEmail(oneTimeToken.getUser().getEmail());
-        OneTimeToken existingToken = oneTimeTokensService.findByUserId(existingUser.getId());
+        OneTimeToken existingToken = OneTimeToken.builder()
+            .user(existingUser)
+            .build();
+        try {
+            existingToken = oneTimeTokensService.findByUserId(existingUser.getId());
+        } catch (ResourceNotFoundException ex) {
+            log.info("OneTimeToken does not exist for user: {}", existingUser.getEmail());
+        }
         OneTimeToken generatedToken = tokenGenerationService.generateToken(existingUser);
         existingToken.setToken(generatedToken.getToken());
         OneTimeToken savedToken = oneTimeTokensService.save(existingToken);

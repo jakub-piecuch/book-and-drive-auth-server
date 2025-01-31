@@ -24,6 +24,7 @@ public class PasswordsController {
 
     private final PasswordsFacade passwordsFacade;
 
+    //This seems irrelevant endpoint
     @PostMapping("/reset-request")
     public ResponseEntity<Void> resetRequest(
         WebRequest webRequest
