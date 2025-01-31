@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
+import redcode.bookanddrive.auth_server.exceptions.MissingAuthorizationToken;
+import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
-import redcode.bookanddrive.auth_server.passwords.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
-import redcode.bookanddrive.auth_server.passwords.service.TokenGenerationService;
-import redcode.bookanddrive.auth_server.passwords.service.TokenValidationService;
+import redcode.bookanddrive.auth_server.users.model.User;
 
 @Slf4j
 @RestController()
@@ -23,27 +23,35 @@ import redcode.bookanddrive.auth_server.passwords.service.TokenValidationService
 public class PasswordsController {
 
     private final PasswordsFacade passwordsFacade;
-    private final TokenValidationService tokenValidationService;
-    private final TokenGenerationService tokenGenerationService;
 
+    //This seems irrelevant endpoint
     @PostMapping("/reset-request")
     public ResponseEntity<Void> resetRequest(
         WebRequest webRequest
     ) {
-        String authorization = webRequest.getHeader("Authorization");
+        if (webRequest.getHeader("Authorization") == null) {
+            throw MissingAuthorizationToken.of(MissingAuthorizationToken.MISSING_AUTH_TOKEN);
+        }
 
-        return ResponseEntity.noContent()
+        String authorization = webRequest.getHeader("Authorization");
+        String extractedJwt = authorization.substring(6);
+
+        passwordsFacade.sendResetPasswordEmail(OneTimeToken.from(extractedJwt));
+
+        return ResponseEntity.ok()
             .build();
     }
 
-    @PostMapping("/reset-validate")
-    public ResponseEntity<Void> validateTokenGetEmail(
-        @RequestParam("token") String oneTimeJwt
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(
+        @RequestParam("email") String email
     ) {
-        OneTimeToken validToken = tokenValidationService.validate(oneTimeJwt);
+        OneTimeToken oneTimeToken = OneTimeToken.builder()
+            .user(User.builder().email(email).build())
+            .build();
+        passwordsFacade.sendForgotPasswordEmail(oneTimeToken);
 
         return ResponseEntity.ok()
-            .header("User-Email:", validToken.getUser().getEmail())
             .build();
     }
 
@@ -52,9 +60,8 @@ public class PasswordsController {
         @Valid @RequestBody PasswordResetRequest passwordResetRequest,
         @RequestParam("token") String oneTimeToken
     ) {
-        log.info("Resetting password for email: {}", passwordResetRequest.email());
-
-        passwordsFacade.resetPassword(passwordResetRequest, oneTimeToken);
+        OneTimeToken token = OneTimeToken.from(oneTimeToken);
+        passwordsFacade.resetPassword(passwordResetRequest, token);
 
         return ResponseEntity.ok("Password has been successfully reset.");
     }

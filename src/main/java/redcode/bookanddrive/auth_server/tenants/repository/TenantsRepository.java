@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
 
 @Repository
-public interface TenantRepository extends JpaRepository<TenantEntity, UUID> {
+public interface TenantsRepository extends JpaRepository<TenantEntity, UUID> {
 
     Optional<TenantEntity> findByName(String name);
 }

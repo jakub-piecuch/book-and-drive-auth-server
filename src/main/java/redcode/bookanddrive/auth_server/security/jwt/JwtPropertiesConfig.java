@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.config;
+package redcode.bookanddrive.auth_server.security.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,8 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @NoArgsConstructor
 @AllArgsConstructor
-@ConfigurationProperties(prefix = "multitenancy.http")
-public class TenantHttpProperties {
+@ConfigurationProperties(prefix = "jwt")
+public class JwtPropertiesConfig {
 
-    private String header;
+    private String secret;
+    private long tokenLifespan;
 }

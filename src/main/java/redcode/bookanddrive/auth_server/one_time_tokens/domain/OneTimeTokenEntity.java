@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.passwords.domain;
+package redcode.bookanddrive.auth_server.one_time_tokens.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import redcode.bookanddrive.auth_server.passwords.model.OneTimeToken;
+import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 
 @Data
@@ -30,12 +30,10 @@ public class OneTimeTokenEntity {
     private UUID id;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "CHAR(256)")
     private String token;
 
     private boolean isUsed;
-
-    private boolean isExpired;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false) // Ensures a OneTimeToken cannot exist without a User
     @JoinColumn(name = "_user_id", nullable = false)
@@ -46,16 +44,7 @@ public class OneTimeTokenEntity {
             .id(oneTimeToken.getId())
             .token(oneTimeToken.getToken())
             .isUsed(oneTimeToken.isUsed())
-            .isExpired(oneTimeToken.isExpired())
             .user(UserEntity.from(oneTimeToken.getUser()))
             .build();
-    }
-
-    public void use() {
-        this.isUsed = true;
-    }
-
-    public void expire() {
-        this.isExpired = true;
     }
 }

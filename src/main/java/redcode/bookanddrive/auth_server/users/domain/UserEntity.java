@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import redcode.bookanddrive.auth_server.passwords.domain.OneTimeTokenEntity;
+import redcode.bookanddrive.auth_server.one_time_tokens.domain.OneTimeTokenEntity;
 import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
 

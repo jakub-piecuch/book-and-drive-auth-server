@@ -9,7 +9,8 @@ public enum RoleEnumEntity {
     LESSON_READ("lessons:read"),
     LESSON_WRITE("lessons:write"),
     USER_READ("users:read"),
-    USER_WRITE("users:write");
+    USER_WRITE("users:write"),
+    SUPER_ADMIN("super:admin");
 
     private final String scope;
 }

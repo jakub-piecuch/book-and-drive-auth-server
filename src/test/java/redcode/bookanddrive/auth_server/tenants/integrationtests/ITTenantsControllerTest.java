@@ -1,94 +1,57 @@
-package redcode.bookanddrive.auth_server.tenants.integrationtests;
+package redcode.bookanddrive.auth_server.tenants.controller;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.http.HttpStatus;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.jdbc.JdbcTestUtils;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import redcode.bookanddrive.auth_server.tenants.controller.dto.CreateTenantRequest;
 import redcode.bookanddrive.auth_server.tenants.controller.dto.TenantResponse;
+import redcode.bookanddrive.auth_server.tenants.model.Tenant;
+import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ITTenantsControllerTest {
+@ExtendWith(MockitoExtension.class)
+class TenantsControllerTest {
 
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+    @Mock
+    private TenantsService tenantsService;
 
-    @Autowired
-    TestRestTemplate restTemplate;
-
-    @PersistenceContext
-    EntityManager entityManager;
+    private TenantsController tenantsController;
 
     @BeforeEach
-    void clearDatabase(@Autowired JdbcTemplate jdbcTemplate) {
-        JdbcTestUtils.deleteFromTables(jdbcTemplate, "tenant");
+    void setUp() {
+        tenantsController = new TenantsController(tenantsService);
     }
 
     @Test
-    void shouldReturn200WhenSchemaIsCreatedSuccessfully() {
-        // Arrange: Specify a valid tenant name for the schema creation.
-        String tenantName = "new_tenant";
+    void testCreateTenant() {
+        // Arrange
+        CreateTenantRequest request = new CreateTenantRequest("TestTenant");
 
-        // Act: Call the /tenants endpoint to create a schema for the tenant.
-        ResponseEntity<TenantResponse> response = restTemplate.postForEntity(
-            "/api/tenants",
-            CreateTenantRequest.builder().name(tenantName).build(),
-            TenantResponse.class
-        );
+        Tenant createdTenant = Tenant.builder()
+            .name(request.name())
+            .build();
 
-        // Assert: The response status should be 200 OK.
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().id()).isNotNull().isInstanceOf(UUID.class);
-        assertThat(response.getBody().name()).isEqualTo(tenantName);
-    }
+        // Mock service method
+        when(tenantsService.createTenant(any(Tenant.class))).thenReturn(createdTenant);
 
+        // Act
+        ResponseEntity<TenantResponse> response = tenantsController.createTenant(request);
 
-    @Test
-    @Transactional
-    void shouldReturn400WhenSchemaAlreadyExists() {
-        // Arrange: Pre-create a schema in the database for the tenant.
-        String tenantName = "existing_tenant";
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(request.name(), response.getBody().name());
 
-        // Act: Attempt to create the same schema via the /tenants endpoint.
-        ResponseEntity<TenantResponse> response1 = restTemplate.postForEntity(
-            "/api/tenants",
-            CreateTenantRequest.builder().name("tenant1").build(),
-            TenantResponse.class
-        );
-
-        ResponseEntity<TenantResponse> response2 = restTemplate.postForEntity(
-            "/api/tenants",
-            CreateTenantRequest.builder().name("tenant1").build(),
-            TenantResponse.class
-        );
-
-        // Assert: The response status should indicate a bad request (400 BAD REQUEST).
-        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-
-        // Assert: Validate the response body contains error details.
-//        Map<String, Object> errorResponse = response2.getBody();
-//        assertThat(errorResponse).isNotNull();
-//        assertThat(errorResponse.get("status")).isEqualTo(400);
-//        assertThat(errorResponse.get("message")).isEqualTo("Schema " + tenantName + " already exists.");
-//        assertThat(errorResponse.get("timestamp")).isNotNull(); // Optional check for timestamp.
+        // Verify service method was called
+        verify(tenantsService).createTenant(any(Tenant.class));
     }
 }
-

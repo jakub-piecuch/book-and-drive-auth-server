@@ -5,10 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -23,17 +21,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import redcode.bookanddrive.auth_server.exceptions.DuplicateResourceException;
 import redcode.bookanddrive.auth_server.tenants.domain.TenantEntity;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
-import redcode.bookanddrive.auth_server.tenants.repository.SchemaRepository;
-import redcode.bookanddrive.auth_server.tenants.repository.TenantRepository;
+import redcode.bookanddrive.auth_server.tenants.repository.TenantsRepository;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 
 class TenantsServiceTest {
 
     @Mock
-    private SchemaRepository schemaRepository;
-
-    @Mock
-    private TenantRepository tenantRepository;
+    private TenantsRepository tenantsRepository;
 
 //    @Mock
 //    private MigrationProvider migrationProvider;
@@ -53,14 +47,7 @@ class TenantsServiceTest {
         TenantEntity tenantEntity = TenantEntity.from(tenant);
 
         // Mock tenant repository save method
-        when(tenantRepository.save(any())).thenReturn(tenantEntity);
-
-        // Mock schema repository createSchema (void method)
-        doNothing().when(schemaRepository).createSchema(tenant.getName());
-
-        // Mock the Flyway instance returned by configureFlywayFor
-//        Flyway flywayMock = mock(Flyway.class);
-//        when(migrationProvider.configureFlywayFor(tenant.getName())).thenReturn(flywayMock);
+        when(tenantsRepository.save(any())).thenReturn(tenantEntity);
 
         // Act
         Tenant result = tenantsService.createTenant(tenant);
@@ -69,11 +56,7 @@ class TenantsServiceTest {
         assertNotNull(result);
         assertEquals(tenant.getName(), result.getName());
 
-        // Verify interactions
-        verify(tenantRepository).save(any(TenantEntity.class));
-        verify(schemaRepository).createSchema(tenant.getName());
-//        verify(migrationProvider).configureFlywayFor(tenant.getName());
-//        verify(flywayMock).migrate();
+        verify(tenantsRepository).save(any(TenantEntity.class));
     }
 
     @Test
@@ -86,7 +69,7 @@ class TenantsServiceTest {
         RuntimeException exception = new RuntimeException(new Throwable(
             TenantsService.DUPLICATE_KEY_VALUE_VIOLATES_UNIQUE_CONSTRAINT));
 
-        doThrow(exception).when(tenantRepository).save(any(TenantEntity.class));
+        doThrow(exception).when(tenantsRepository).save(any(TenantEntity.class));
 
         // Act & Assert
         DuplicateResourceException thrown = assertThrows(DuplicateResourceException.class,
@@ -95,9 +78,7 @@ class TenantsServiceTest {
         assertNotNull(thrown);
         assertEquals("Tenant tenant1 already exists.", thrown.getMessage());
         assertEquals("duplicate_value", thrown.getReason());
-        verify(tenantRepository).save(any(TenantEntity.class));
-        verifyNoInteractions(schemaRepository);
-//        verifyNoInteractions(migrationProvider);
+        verify(tenantsRepository).save(any(TenantEntity.class));
     }
 
     @Test
@@ -112,7 +93,7 @@ class TenantsServiceTest {
             new Throwable("duplicate key value violates unique constraint")
         );
 
-        doThrow(generalException).when(tenantRepository).save(any(TenantEntity.class));
+        doThrow(generalException).when(tenantsRepository).save(any(TenantEntity.class));
 
         // Act & Assert
         RuntimeException thrown = assertThrows(RuntimeException.class,
@@ -120,9 +101,7 @@ class TenantsServiceTest {
 
         assertNotNull(thrown);
         assertEquals("Tenant tenant1 already exists.", thrown.getMessage());
-        verify(tenantRepository).save(any(TenantEntity.class));
-        verifyNoInteractions(schemaRepository);
-//        verifyNoInteractions(migrationProvider);
+        verify(tenantsRepository).save(any(TenantEntity.class));
     }
 
     @Test
@@ -132,7 +111,7 @@ class TenantsServiceTest {
         TenantEntity tenant1 = new TenantEntity(UUID.randomUUID(), "tenant1", Set.of(new UserEntity()));
         TenantEntity tenant2 = new TenantEntity(UUID.randomUUID(), "tenant2", Set.of(new UserEntity()));
 
-        when(tenantRepository.findAll()).thenReturn(List.of(tenant1, tenant2));
+        when(tenantsRepository.findAll()).thenReturn(List.of(tenant1, tenant2));
 
         // Act
         List<Tenant> tenants = tenantsService.getAllTenants();
@@ -142,13 +121,13 @@ class TenantsServiceTest {
         assertEquals(2, tenants.size());
         assertEquals("tenant1", tenants.get(0).getName());
         assertEquals("tenant2", tenants.get(1).getName());
-        verify(tenantRepository).findAll();
+        verify(tenantsRepository).findAll();
     }
 
     @Test
     void testGetAllTenants_EmptyList() {
         // Arrange
-        when(tenantRepository.findAll()).thenReturn(List.of());
+        when(tenantsRepository.findAll()).thenReturn(List.of());
 
         // Act
         List<Tenant> tenants = tenantsService.getAllTenants();
@@ -156,6 +135,6 @@ class TenantsServiceTest {
         // Assert
         assertNotNull(tenants);
         assertTrue(tenants.isEmpty());
-        verify(tenantRepository).findAll();
+        verify(tenantsRepository).findAll();
     }
 }

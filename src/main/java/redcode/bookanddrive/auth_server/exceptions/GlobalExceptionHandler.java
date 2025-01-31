@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -119,6 +120,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
         return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorDetails> hanldeBadCredentialsException(BadCredentialsException ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .reason(HttpStatus.BAD_REQUEST.getReasonPhrase())
+            .message("Incorrect username or password.")
+            .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingAuthorizationToken.class)
+    public ResponseEntity<ErrorDetails> handleMissingAuthorizationTokenException(MissingAuthorizationToken ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .reason(HttpStatus.BAD_REQUEST.getReasonPhrase())
+            .message(ex.getMessage())
+            .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+
 
     //     Handle Generic Exceptions
     @ExceptionHandler(Exception.class)
