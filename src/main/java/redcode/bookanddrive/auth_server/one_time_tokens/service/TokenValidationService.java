@@ -20,7 +20,7 @@ public class TokenValidationService {
     private final OneTimeTokenRepository oneTimeTokenRepository;
     private final JwtUtil jwtUtil;
 
-    public OneTimeToken validate(OneTimeToken oneTimeToken) {
+    public void validate(OneTimeToken oneTimeToken) {
         String email = oneTimeToken.getUser().getEmail();
         OneTimeToken existingToken = oneTimeTokenRepository.findByUserEmail(email)
             .map(OneTimeToken::from)
@@ -32,8 +32,6 @@ public class TokenValidationService {
         validateIfBelongsToUser(oneTimeToken, existingToken);
         validateIfUsed(existingToken);
         validateIfExpired(existingToken);
-
-        return existingToken;
     }
 
     private void validateIfBelongsToUser(OneTimeToken oneTimeToken, OneTimeToken existingToken) {

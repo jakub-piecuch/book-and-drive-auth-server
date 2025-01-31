@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.OneTimeTokensService;
@@ -33,12 +34,17 @@ public class PasswordsFacade {
         OneTimeToken token = enrichWithUserName(oneTimeToken);
 
         log.info("Resetting password for email: {}", token.getUser().getEmail());
-        OneTimeToken validatedToken = tokenValidationService.validate(token);
-        validatedToken.use();
-        oneTimeTokensService.save(validatedToken);
+        tokenValidationService.validate(token);
+        token.use();
+        oneTimeTokensService.save(token);
 
         passwordValidationService.validate(newPassword, confirmPassword);
-        usersService.updatePassword(token.getUser().getEmail(), newPassword);
+
+        try {
+            usersService.updatePassword(token.getUser().getEmail(), newPassword);
+        } catch (ResourceNotFoundException e) {
+            throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
+        }
     }
 
     @Transactional

@@ -31,7 +31,7 @@ public class TenantEntity {
     private UUID id;
     @Column(unique = true, nullable = false)
     private String name;
-    @OneToMany(mappedBy = "tenant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "tenant", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<UserEntity> users;
 
     public static TenantEntity from(Tenant tenant) {
