@@ -9,11 +9,13 @@ import static org.mockito.Mockito.when;
 import static redcode.bookanddrive.auth_server.data_generator.UsersGenerator.generateUser;
 import static redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException.RESOURCE_NOT_FOUND;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import redcode.bookanddrive.auth_server.email.EmailsService;
+import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
@@ -25,33 +27,25 @@ import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.service.UsersService;
 
+@ExtendWith(MockitoExtension.class)
 class PasswordsFacadeTest {
-
     @Mock
     private PasswordValidationService passwordValidationService;
-
     @Mock
     private TokenValidationService tokenValidationService;
-
     @Mock
     private TokenGenerationService tokenGenerationService;
-
     @Mock
     private UsersService usersService;
-
     @Mock
     private OneTimeTokensService oneTimeTokensService;
-
     @Mock
     private JwtUtil jwtUtil;
+    @Mock
+    private EmailsService emailsService;
 
     @InjectMocks
     private PasswordsFacade passwordsFacade;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void testResetPassword_Success() {
@@ -100,7 +94,7 @@ class PasswordsFacadeTest {
     }
 
     @Test
-    void testSendResetPasswordEmail_Success() {
+    void testSendResetPasswordEmail_Success() throws FailedEmailException {
         User user = generateUser();
         OneTimeToken token = OneTimeToken.builder()
             .user(user)
@@ -123,7 +117,7 @@ class PasswordsFacadeTest {
     }
 
     @Test
-    void testSendForgotPasswordEmail_Success() {
+    void testSendForgotPasswordEmail_Success() throws FailedEmailException {
         User user = generateUser();
         OneTimeToken token = OneTimeToken.builder()
             .user(user)
@@ -146,7 +140,7 @@ class PasswordsFacadeTest {
     }
 
     @Test
-    void testSendForgotPasswordEmail_ResourceNotFound() {
+    void testSendForgotPasswordEmail_ResourceNotFound() throws FailedEmailException {
         User user = generateUser();
         OneTimeToken token = OneTimeToken.builder()
             .user(user)

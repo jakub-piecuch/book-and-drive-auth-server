@@ -11,8 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.WebRequest;
+import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.MissingAuthorizationToken;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
@@ -35,7 +37,7 @@ class PasswordsControllerTest {
     }
 
     @Test
-    void resetRequest_withValidAuthorization_shouldSendResetEmail() {
+    void resetRequest_withValidAuthorization_shouldSendResetEmail() throws FailedEmailException {
         // Arrange
         when(webRequest.getHeader("Authorization")).thenReturn("Bearer testToken");
 
@@ -44,7 +46,7 @@ class PasswordsControllerTest {
 
         // Assert
         verify(passwordsFacade).sendResetPasswordEmail(any(OneTimeToken.class));
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     }
 
     @Test
@@ -59,7 +61,7 @@ class PasswordsControllerTest {
     }
 
     @Test
-    void forgotPassword_shouldSendForgotPasswordEmail() {
+    void forgotPassword_shouldSendForgotPasswordEmail() throws FailedEmailException {
         // Arrange
         String email = "test@example.com";
 
@@ -68,7 +70,7 @@ class PasswordsControllerTest {
 
         // Assert
         verify(passwordsFacade).sendForgotPasswordEmail(any(OneTimeToken.class));
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     }
 
     @Test
@@ -85,7 +87,7 @@ class PasswordsControllerTest {
 
         // Assert
         verify(passwordsFacade).resetPassword(eq(resetRequest), any(OneTimeToken.class));
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
         assertEquals("Password has been successfully reset.", response.getBody());
     }
 }

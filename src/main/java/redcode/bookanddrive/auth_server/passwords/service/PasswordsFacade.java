@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import redcode.bookanddrive.auth_server.email.EmailsService;
+import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
@@ -26,6 +28,7 @@ public class PasswordsFacade {
     private final UsersService usersService;
     private final OneTimeTokensService oneTimeTokensService;
     private final JwtUtil jwtUtil;
+    private final EmailsService emailsService;
 
     @Transactional
     public void resetPassword(PasswordResetRequest passwordResetRequest, OneTimeToken oneTimeToken) {
@@ -48,7 +51,7 @@ public class PasswordsFacade {
     }
 
     @Transactional
-    public void sendResetPasswordEmail(OneTimeToken oneTimeToken) {
+    public void sendResetPasswordEmail(OneTimeToken oneTimeToken) throws FailedEmailException {
         OneTimeToken token = enrichWithUserName(oneTimeToken);
         User existingUser = usersService.findByEmail(token.getUser().getEmail());
         OneTimeToken existingToken = oneTimeTokensService.findByUserId(existingUser.getId());
@@ -58,10 +61,11 @@ public class PasswordsFacade {
 
         //TODO temporary before I add an email service
         log.info("User: {} requested new token: {}", savedToken.getUser().getEmail(), savedToken.getToken());
+        emailsService.sendPasswordResetEmail(savedToken);
     }
 
     @Transactional
-    public void sendForgotPasswordEmail(OneTimeToken oneTimeToken) {
+    public void sendForgotPasswordEmail(OneTimeToken oneTimeToken) throws FailedEmailException {
         User existingUser = usersService.findByEmail(oneTimeToken.getUser().getEmail());
         OneTimeToken existingToken = OneTimeToken.builder()
             .user(existingUser)
@@ -77,6 +81,8 @@ public class PasswordsFacade {
 
         //TODO temporary before I add an email service
         log.info("User: {} requested new token: {}", savedToken.getUser().getEmail(), savedToken.getToken());
+
+        emailsService.sendPasswordResetEmail(savedToken);
     }
 
     private OneTimeToken enrichWithUserName(OneTimeToken token) {

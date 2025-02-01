@@ -37,3 +37,15 @@ admin-user:
   username: ${ADMIN_USERNAME:jakub@admin.com}
   roles: ${ADMIN_USER_ROLES_ARRAY:[SUPER_ADMIN, USER_WRITE, USER_READ]}
 
+  mail:
+    host: ${GMAIL_HOST:smtp.gmail.com}
+    port: ${GMAIL_PORT:587}
+    username: ${RESET_PASSWORD_GMAIL_USERNAME:bookanddrive.bad@gmail.com}
+    password: ${RESET_PASSWORD_GMAIL_APP_PASSWORD:jsnc qzzx bukc usjb}
+    properties:
+      mail:
+        smtp:
+          auth: true
+        starttls:
+          enable: true
+          required: true
