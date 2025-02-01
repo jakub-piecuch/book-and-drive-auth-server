@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.email;
+package redcode.bookanddrive.auth_server.emails;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;

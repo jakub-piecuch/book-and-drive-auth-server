@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import redcode.bookanddrive.auth_server.email.EmailsService;
+import redcode.bookanddrive.auth_server.emails.EmailsService;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;

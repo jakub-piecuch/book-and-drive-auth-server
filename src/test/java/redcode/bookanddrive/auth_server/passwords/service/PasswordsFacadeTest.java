@@ -14,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import redcode.bookanddrive.auth_server.email.EmailsService;
+import redcode.bookanddrive.auth_server.emails.EmailsService;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;

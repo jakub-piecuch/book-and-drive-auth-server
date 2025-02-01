@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.email;
+package redcode.bookanddrive.auth_server.emails;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

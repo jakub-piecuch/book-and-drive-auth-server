@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import redcode.bookanddrive.auth_server.emails.EmailService;
+import redcode.bookanddrive.auth_server.emails.EmailsService;
+import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.OneTimeTokensService;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenGenerationService;
@@ -19,12 +20,12 @@ public class UsersFacade {
 
     private final UsersService usersService;
     private final TokenGenerationService tokenGenerationService;
-    private final EmailService emailService;
+    private final EmailsService emailService;
     private final TenantsService tenantsService;
     private final OneTimeTokensService oneTimeTokensService;
 
     @Transactional
-    public User createUserWithTemporaryPassword(User user) {
+    public User createUserWithTemporaryPassword(User user) throws FailedEmailException {
         Tenant tenant = tenantsService.getTenantByName(user.getTenant().getName());
         User userWithTenantId = user.toBuilder().tenant(tenant).build();
         User createdUser = usersService.save(userWithTenantId);
@@ -32,7 +33,7 @@ public class UsersFacade {
         OneTimeToken oneTimeToken = tokenGenerationService.generateToken(createdUser);
         oneTimeTokensService.save(oneTimeToken);
 
-        emailService.sendEmail(createdUser.getEmail(), oneTimeToken);
+        emailService.sendPasswordResetEmail(oneTimeToken);
 
         // TODO do wyrzucenia jak beda dzialac emaile
         log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken);

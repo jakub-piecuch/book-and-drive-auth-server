@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.email.config;
+package redcode.bookanddrive.auth_server.emails.config;
 
 import java.util.Properties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -12,11 +12,12 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 public class EmailsConfig {
 
     @Bean
-    public JavaMailSender javeMailSender() {
+    public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        //TODO use config instead
         mailSender.setHost("smtp.gmail.com");
         mailSender.setPort(587);
-        mailSender.setUsername("bookanddrive.bad@gmail.com"); // Replace with your email
+        mailSender.setUsername("bookanddrivebad@gmail.com"); // Replace with your email
         mailSender.setPassword("jsnc qzzx bukc usjb"); // Use an App Password, NOT your real password!
 
         Properties props = mailSender.getJavaMailProperties();
