@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.WebRequest;
+import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.tenants.config.TenantHttpProperties;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
 import redcode.bookanddrive.auth_server.users.controller.dto.CreateUserRequest;
@@ -41,7 +42,7 @@ class UsersControllerTest {
     }
 
     @Test
-    void testCreateUser() {
+    void testCreateUser() throws FailedEmailException {
         // Arrange
         CreateUserRequest request = CreateUserRequest.builder()
             .email("test@example.com")

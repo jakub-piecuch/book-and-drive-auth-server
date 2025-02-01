@@ -145,7 +145,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(FailedEmailException.class)
+    public ResponseEntity<ErrorDetails> handleFailedEmailException(FailedEmailException ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .reason(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+            .message(ex.getMessage())
+            .build();
 
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
 
     //     Handle Generic Exceptions
     @ExceptionHandler(Exception.class)

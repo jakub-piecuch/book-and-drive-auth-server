@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
+import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.tenants.config.TenantHttpProperties;
 import redcode.bookanddrive.auth_server.users.controller.dto.CreateUserRequest;
 import redcode.bookanddrive.auth_server.users.controller.dto.UsersResponse;
@@ -31,7 +32,7 @@ public class UsersController {
     public ResponseEntity<UsersResponse> createUser(
         @Valid @RequestBody CreateUserRequest request,
         WebRequest webRequest
-    ) {
+    ) throws FailedEmailException {
         log.info("Creating user with email: {}", request.getEmail());
 
         String tenant = webRequest.getHeader(tenantHttpProperties.getHeader());

@@ -12,7 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import redcode.bookanddrive.auth_server.emails.EmailService;
+import redcode.bookanddrive.auth_server.emails.EmailsService;
+import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.OneTimeTokensService;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenGenerationService;
@@ -30,7 +31,7 @@ class UsersFacadeTest {
     private TokenGenerationService tokenGenerationService;
 
     @Mock
-    private EmailService emailService;
+    private EmailsService emailService;
 
     @Mock
     private TenantsService tenantsService;
@@ -52,7 +53,7 @@ class UsersFacadeTest {
     }
 
     @Test
-    void testCreateUserWithTemporaryPassword() {
+    void testCreateUserWithTemporaryPassword() throws FailedEmailException {
         // Arrange
         Tenant tenant = Tenant.builder().name("TestTenant").build();
         User inputUser = User.builder()
@@ -79,6 +80,6 @@ class UsersFacadeTest {
         verify(usersService).save(any(User.class));
         verify(tokenGenerationService).generateToken(savedUser);
         verify(oneTimeTokensService).save(oneTimeToken);
-        verify(emailService).sendEmail(eq(savedUser.getEmail()), eq(oneTimeToken));
+        verify(emailService).sendPasswordResetEmail(eq(oneTimeToken));
     }
 }
