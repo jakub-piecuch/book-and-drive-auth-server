@@ -7,9 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import redcode.bookanddrive.auth_server.auth.token.AuthenticationToken;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.service.UsersService;
 
@@ -33,21 +33,27 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             chain.doFilter(request, response);
             return;
         }
-        UsernamePasswordAuthenticationToken authentication = getAuthentication(request);
+        AuthenticationToken authentication = getAuthentication(request);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response);
     }
 
-    private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
+    private AuthenticationToken getAuthentication(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-        UsernamePasswordAuthenticationToken authentication = null;
+        AuthenticationToken authentication = null;
         if (Objects.nonNull(token)) {
             String username = jwtUtil.extractUsernameFromToken(token.replace(BEARER_PREFIX, ""));
             String tenant = jwtUtil.extractTenantFromToken(token.replace(BEARER_PREFIX, ""));
             if (Objects.nonNull(username)) {
                 User userDetails = usersService.findByUsernameAndTenantName(username, tenant);
                 if (jwtUtil.validateToken(token.replace(BEARER_PREFIX, ""), userDetails)) {
-                    authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication = new AuthenticationToken(
+                        userDetails.getUsername(),
+                        userDetails.getPassword(),
+                        userDetails.getAuthorities(),
+                        tenant,
+                        token
+                    );
                 }
             }
         }

@@ -1,5 +1,6 @@
 package redcode.bookanddrive.auth_server.one_time_tokens.service;
 
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,20 +18,33 @@ public class OneTimeTokensService {
     private final OneTimeTokenRepository oneTimeTokenRepository;
 
     public OneTimeToken save(OneTimeToken token) {
-        try {
-            OneTimeTokenEntity tokenEntity = OneTimeTokenEntity.from(token);
-            OneTimeTokenEntity savedToken = oneTimeTokenRepository.save(tokenEntity);
-
-            return OneTimeToken.from(savedToken);
-        } catch (Exception e) {
-            log.error("Exception when saving to database: {}", e.getMessage(), e);
-            throw new RuntimeException();
-        }
+        return oneTimeTokenRepository.findByUserEmailAndUserTenantName(
+                token.getUser().getEmail(),
+                token.getUser().getTenantName()
+            )
+            .map(entity -> entity.toBuilder()
+                .token(token.getToken())
+                .isUsed(token.isUsed())
+                .build())
+            .map(oneTimeTokenRepository::save)
+            .map(OneTimeToken::from)
+            .orElseGet(() -> {
+                OneTimeTokenEntity savedToken = oneTimeTokenRepository.save(OneTimeTokenEntity.from(token));
+                return OneTimeToken.from(savedToken);
+            });
     }
 
-    public OneTimeToken findByUserId(UUID id) {
-        return oneTimeTokenRepository.findByUserId(id)
+    public OneTimeToken findByUserEmailAndTenant(String email, String tenantName) {
+        return oneTimeTokenRepository.findByUserEmailAndUserTenantName(email, tenantName)
             .map(OneTimeToken::from)
-            .orElseThrow(() -> ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND));
+            .orElseThrow(() -> {
+                log.error("Token does not exist in the database.");
+                return ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND);
+            });
+    }
+
+    public Optional<OneTimeToken> findByUserId(UUID id) {
+        return oneTimeTokenRepository.findByUserId(id)
+            .map(OneTimeToken::from);
     }
 }

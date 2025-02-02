@@ -9,8 +9,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -41,7 +39,7 @@ public class SecurityConfig {
             .httpBasic(Customizer.withDefaults())
             .formLogin(Customizer.withDefaults())
             .authorizeHttpRequests(request -> request
-                .requestMatchers("/api/passwords/reset-request").authenticated()
+                .requestMatchers("/api/passwords/reset").authenticated()
                 .requestMatchers("/api/passwords/**").permitAll()
                 .requestMatchers("/api/tenants/**").authenticated()
                 .requestMatchers("/api/users/**").authenticated()
@@ -70,11 +68,4 @@ public class SecurityConfig {
 
         return new InMemoryRegisteredClientRepository(client);
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-
 }

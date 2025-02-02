@@ -1,6 +1,6 @@
 package redcode.bookanddrive.auth_server.exceptions;
 
-public class FailedEmailException extends Exception {
+public class FailedEmailException extends RuntimeException {
 
     public static final String SENDING_EMAIL_FAILS = "Sending an email has failed";
 

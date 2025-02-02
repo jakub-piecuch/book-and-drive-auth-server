@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.WebRequest;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
-import redcode.bookanddrive.auth_server.exceptions.MissingAuthorizationToken;
+import redcode.bookanddrive.auth_server.exceptions.MissingAuthorizationTokenExcetion;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
@@ -55,7 +55,7 @@ class PasswordsControllerTest {
         when(webRequest.getHeader("Authorization")).thenReturn(null);
 
         // Assert
-        assertThrows(MissingAuthorizationToken.class, () -> {
+        assertThrows(MissingAuthorizationTokenExcetion.class, () -> {
             passwordsController.resetRequest(webRequest);
         });
     }

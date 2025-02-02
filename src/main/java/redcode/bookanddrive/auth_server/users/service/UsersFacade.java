@@ -1,5 +1,7 @@
 package redcode.bookanddrive.auth_server.users.service;
 
+import static redcode.bookanddrive.auth_server.exceptions.UserAlreadyExistsException.USER_ALREADY_EXISTS;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -7,9 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import redcode.bookanddrive.auth_server.emails.EmailsService;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
+import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
+import redcode.bookanddrive.auth_server.exceptions.UserAlreadyExistsException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.OneTimeTokensService;
 import redcode.bookanddrive.auth_server.one_time_tokens.service.TokenGenerationService;
+import redcode.bookanddrive.auth_server.passwords.utils.PasswordGenerator;
 import redcode.bookanddrive.auth_server.tenants.model.Tenant;
 import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 import redcode.bookanddrive.auth_server.users.model.User;
@@ -28,20 +33,30 @@ public class UsersFacade {
 
     @Transactional
     public User createUserWithTemporaryPassword(User user) throws FailedEmailException {
-        Tenant tenant = tenantsService.getTenantByName(user.getTenant().getName());
-        User userWithTenantIdAndEncodedPassword = user.toBuilder()
-            .password(passwordEncoder.encode(user.getPassword()))
-            .tenant(tenant).build();
-        User createdUser = usersService.save(userWithTenantIdAndEncodedPassword);
+        String userName = user.getUsername();
+        String tenantName = user.getTenantName();
+        String password = PasswordGenerator.generatePassword(12);
 
-        OneTimeToken oneTimeToken = tokenGenerationService.generateToken(createdUser);
-        oneTimeTokensService.save(oneTimeToken);
+        try {
+            usersService.findByUsernameAndTenantName(userName, tenantName);
+            throw UserAlreadyExistsException.of(USER_ALREADY_EXISTS);
+        } catch (ResourceNotFoundException e) {
+            Tenant tenant = tenantsService.getTenantByName(tenantName);
 
-        emailService.sendPasswordResetEmail(oneTimeToken);
+            User userWithTenantIdAndEncodedPassword = user.toBuilder()
+                .password(passwordEncoder.encode(password))
+                .tenant(tenant).build();
+            User createdUser = usersService.save(userWithTenantIdAndEncodedPassword);
 
-        // TODO do wyrzucenia jak beda dzialac emaile
-        log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken);
+            OneTimeToken oneTimeToken = tokenGenerationService.generateToken(createdUser);
+            oneTimeTokensService.save(oneTimeToken);
 
-        return createdUser;
+            emailService.sendPasswordResetEmail(oneTimeToken);
+
+            // TODO do wyrzucenia jak beda dzialac emaile
+            log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken);
+
+            return createdUser;
+        }
     }
 }

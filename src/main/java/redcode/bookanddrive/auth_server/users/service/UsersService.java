@@ -2,7 +2,6 @@ package redcode.bookanddrive.auth_server.users.service;
 
 import static redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException.RESOURCE_NOT_FOUND;
 
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,8 +23,10 @@ public class UsersService {
         return User.from(savedUser);
     }
 
-    public User updatePassword(String email, String encodedPassword) {
-        UserEntity existingUserWithUpdatedPassword = usersRepository.findByEmail(email)
+    public User updatePassword(User user, String encodedPassword) {
+        String userName = user.getUsername();
+        String tenant = user.getTenantName();
+        UserEntity existingUserWithUpdatedPassword = usersRepository.findByEmailAndTenantName(userName, tenant)
             .map(entity -> entity.toBuilder().password(encodedPassword).build())
             .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
 
@@ -34,11 +35,11 @@ public class UsersService {
         return User.from(updatedUser);
     }
 
-    public List<User> getUsers() {
-        return usersRepository.findAll().stream()
-            .map(User::from)
-            .toList();
-    }
+//    public List<User> getUsers() {
+//        return usersRepository.findAll().stream()
+//            .map(User::from)
+//            .toList();
+//    }
 
     public User findById(UUID id) {
         return usersRepository.findById(id)
@@ -46,11 +47,11 @@ public class UsersService {
             .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
     }
 
-    public User findByEmail(String email) {
-        return usersRepository.findByEmail(email)
-            .map(User::from)
-            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
-    }
+//    public User findByEmail(String email) {
+//        return usersRepository.findByEmail(email)
+//            .map(User::from)
+//            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
+//    }
 
     public User updateById(UUID id, User user) {
         return usersRepository.findById(id)

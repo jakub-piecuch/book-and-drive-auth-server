@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import redcode.bookanddrive.auth_server.auth.token.AuthenticationToken;
 import redcode.bookanddrive.auth_server.exceptions.PasswordsMismatchException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
+import redcode.bookanddrive.auth_server.exceptions.UserDoesNotExistException;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordValidationService;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.service.UsersService;
@@ -33,14 +34,19 @@ public class AuthenticationManagerImpl implements AuthenticationManager {
         // Load user by username AND tenant
         try {
             User userDetails = usersService.findByUsernameAndTenantName(username, tenant);
-            passwordValidationService.validate(password, userDetails.getPassword());
+            passwordValidationService.validateEncoded(password, userDetails.getPassword());
             return new AuthenticationToken(
                 userDetails.getUsername(),
                 userDetails.getPassword(),
                 userDetails.getAuthorities(),
-                userDetails.getTenantName()
+                userDetails.getTenantName(),
+                ((AuthenticationToken) authentication).getToken()
             );
-        } catch (ResourceNotFoundException | PasswordsMismatchException e) {
+        } catch (ResourceNotFoundException e) {
+            throw UserDoesNotExistException.of(UserDoesNotExistException.USER_DOES_NOT_EXIST);
+        } catch (
+            PasswordsMismatchException e) {
+            log.error("Authentication failed: {}", e.getMessage());
             throw new BadCredentialsException("Invalid username or password");
         }
 

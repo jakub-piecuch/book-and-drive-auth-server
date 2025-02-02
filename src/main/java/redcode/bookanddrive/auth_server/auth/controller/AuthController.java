@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import redcode.bookanddrive.auth_server.auth.controller.dto.AuthenticationRequest;
 import redcode.bookanddrive.auth_server.auth.controller.dto.AuthenticationResponse;
+import redcode.bookanddrive.auth_server.auth.manager.AuthenticationManagerImpl;
+import redcode.bookanddrive.auth_server.auth.token.AuthenticationToken;
 import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
 import redcode.bookanddrive.auth_server.users.model.User;
@@ -21,9 +23,8 @@ import redcode.bookanddrive.auth_server.users.service.UsersService;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-//    private final AuthenticationManager authenticationManager;
+    private final AuthenticationManagerImpl authenticationManager;
     private final JwtUtil jwtUtil;
-//    private final UserDetailsServiceImpl userDetailsService;
     private final UsersService usersService;
 
     @PostMapping("/login")
@@ -33,16 +34,13 @@ public class AuthController {
 
         var tenant = TenantContext.getTenantId();
 
-        try {
-//            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-//                authenticationRequest.username(), authenticationRequest.password())
-//            );
-        } catch (BadCredentialsException badCredentialsException) {
-            log.error("Incorrect username or password");
-            throw badCredentialsException;
-        }
+        authenticationManager.authenticate(new AuthenticationToken(
+                authenticationRequest.username(),
+                authenticationRequest.password(),
+                tenant
+            )
+        );
 
-//        final User userDetails = userDetailsService.LoadUserByUsernameAndTenat(authenticationRequest.username(), tenant);
         final User user = usersService.findByUsernameAndTenantName(authenticationRequest.username(), tenant);
         final String jwt = jwtUtil.generateToken(user);
 

@@ -23,7 +23,7 @@ public class TenantsController {
     private final TenantsService schemaService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('super:admin', 'tenants:write)")
+    @PreAuthorize("hasAuthority('super:admin') and hasAuthority('tenants:write')")
     public ResponseEntity<TenantResponse> createTenant(@Valid @RequestBody CreateTenantRequest request) {
         log.info("Adding tenant: {}", request.name());
         Tenant tenant = Tenant.from(request);
