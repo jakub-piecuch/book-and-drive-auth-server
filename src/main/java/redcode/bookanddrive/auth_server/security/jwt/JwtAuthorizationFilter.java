@@ -9,21 +9,21 @@ import java.util.Objects;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import redcode.bookanddrive.auth_server.users.model.User;
+import redcode.bookanddrive.auth_server.users.service.UsersService;
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+    private final UsersService usersService;
 
-    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UsersService usersService) {
         super(authenticationManager);
         this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
+        this.usersService = usersService;
     }
 
     @Override
@@ -43,8 +43,9 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         UsernamePasswordAuthenticationToken authentication = null;
         if (Objects.nonNull(token)) {
             String username = jwtUtil.extractUsernameFromToken(token.replace(BEARER_PREFIX, ""));
+            String tenant = jwtUtil.extractTenantFromToken(token.replace(BEARER_PREFIX, ""));
             if (Objects.nonNull(username)) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                User userDetails = usersService.findByUsernameAndTenantName(username, tenant);
                 if (jwtUtil.validateToken(token.replace(BEARER_PREFIX, ""), userDetails)) {
                     authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 }

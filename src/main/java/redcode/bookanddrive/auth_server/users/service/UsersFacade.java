@@ -2,6 +2,7 @@ package redcode.bookanddrive.auth_server.users.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import redcode.bookanddrive.auth_server.emails.EmailsService;
@@ -23,12 +24,15 @@ public class UsersFacade {
     private final EmailsService emailService;
     private final TenantsService tenantsService;
     private final OneTimeTokensService oneTimeTokensService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public User createUserWithTemporaryPassword(User user) throws FailedEmailException {
         Tenant tenant = tenantsService.getTenantByName(user.getTenant().getName());
-        User userWithTenantId = user.toBuilder().tenant(tenant).build();
-        User createdUser = usersService.save(userWithTenantId);
+        User userWithTenantIdAndEncodedPassword = user.toBuilder()
+            .password(passwordEncoder.encode(user.getPassword()))
+            .tenant(tenant).build();
+        User createdUser = usersService.save(userWithTenantIdAndEncodedPassword);
 
         OneTimeToken oneTimeToken = tokenGenerationService.generateToken(createdUser);
         oneTimeTokensService.save(oneTimeToken);

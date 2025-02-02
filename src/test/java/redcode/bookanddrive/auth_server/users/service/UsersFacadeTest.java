@@ -7,11 +7,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import redcode.bookanddrive.auth_server.emails.EmailsService;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
@@ -25,32 +26,25 @@ import redcode.bookanddrive.auth_server.users.model.User;
 class UsersFacadeTest {
 
     @Mock
-    private UsersService usersService;
+    UsersService usersService;
 
     @Mock
-    private TokenGenerationService tokenGenerationService;
+    TokenGenerationService tokenGenerationService;
 
     @Mock
-    private EmailsService emailService;
+    EmailsService emailService;
 
     @Mock
-    private TenantsService tenantsService;
+    TenantsService tenantsService;
 
     @Mock
-    private OneTimeTokensService oneTimeTokensService;
+    OneTimeTokensService oneTimeTokensService;
 
+    @Mock
+    PasswordEncoder passwordEncoder;
+
+    @InjectMocks
     private UsersFacade usersFacade;
-
-    @BeforeEach
-    void setUp() {
-        usersFacade = new UsersFacade(
-            usersService,
-            tokenGenerationService,
-            emailService,
-            tenantsService,
-            oneTimeTokensService
-        );
-    }
 
     @Test
     void testCreateUserWithTemporaryPassword() throws FailedEmailException {
@@ -65,6 +59,7 @@ class UsersFacadeTest {
         OneTimeToken oneTimeToken = mock(OneTimeToken.class);
 
         // Mock dependencies
+        when(passwordEncoder.encode(any())).thenReturn("encodedNewPassword");
         when(tenantsService.getTenantByName(tenant.getName())).thenReturn(tenant);
         when(usersService.save(any(User.class))).thenReturn(savedUser);
         when(tokenGenerationService.generateToken(savedUser)).thenReturn(oneTimeToken);

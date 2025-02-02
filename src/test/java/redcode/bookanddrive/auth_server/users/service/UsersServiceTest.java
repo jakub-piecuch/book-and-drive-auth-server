@@ -14,12 +14,11 @@ import static redcode.bookanddrive.auth_server.data_generator.UsersGenerator.gen
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
@@ -31,15 +30,8 @@ class UsersServiceTest {
     @Mock
     private UsersRepository usersRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
+    @InjectMocks
     private UsersService usersService;
-
-    @BeforeEach
-    void setUp() {
-        usersService = new UsersService(usersRepository, passwordEncoder);
-    }
 
     @Test
     void testSave() {
@@ -47,7 +39,6 @@ class UsersServiceTest {
         User user = generateUser();
         UserEntity savedUserEntity = UserEntity.from(user);
 
-        when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
         when(usersRepository.save(any(UserEntity.class))).thenReturn(savedUserEntity);
 
         // Act
@@ -66,7 +57,6 @@ class UsersServiceTest {
         UserEntity existingUser = generateUserEntity();
 
         when(usersRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
-        when(passwordEncoder.encode(newPassword)).thenReturn("encodedNewPassword");
         when(usersRepository.save(any(UserEntity.class))).thenReturn(existingUser);
 
         // Act

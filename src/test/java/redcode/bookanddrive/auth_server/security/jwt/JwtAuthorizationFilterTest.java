@@ -3,23 +3,27 @@ package redcode.bookanddrive.auth_server.security.jwt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static redcode.bookanddrive.auth_server.users.model.RoleEnum.USERS_READ;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import redcode.bookanddrive.auth_server.users.model.User;
+import redcode.bookanddrive.auth_server.users.service.UsersService;
 
+@ExtendWith(MockitoExtension.class)
 class JwtAuthorizationFilterTest {
 
     private static final String VALID_TOKEN = "Bearer valid_token";
@@ -30,7 +34,7 @@ class JwtAuthorizationFilterTest {
     private JwtUtil jwtUtil;
 
     @Mock
-    private UserDetailsService userDetailsService;
+    private UsersService usersService;
 
     @Mock
     private AuthenticationManager authenticationManager;
@@ -44,13 +48,8 @@ class JwtAuthorizationFilterTest {
     @Mock
     private FilterChain chain;
 
+    @InjectMocks
     private JwtAuthorizationFilter jwtAuthorizationFilter;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        jwtAuthorizationFilter = new JwtAuthorizationFilter(authenticationManager, jwtUtil, userDetailsService);
-    }
 
     @Test
     void doFilterInternal_WhenNoAuthorizationHeader_ShouldPassFilter() throws Exception {
@@ -80,10 +79,10 @@ class JwtAuthorizationFilterTest {
     void doFilterInternal_WhenValidToken_ShouldSetAuthentication() throws Exception {
         // Arrange
         when(request.getHeader("Authorization")).thenReturn(VALID_TOKEN);
-        UserDetails userDetails = User.withUsername(USERNAME).password("").authorities("USER").build();
+        User user = User.builder().email(USERNAME).password("").roles(Set.of(USERS_READ)).build();
         when(jwtUtil.extractUsernameFromToken("valid_token")).thenReturn(USERNAME);
-        when(jwtUtil.validateToken("valid_token", userDetails)).thenReturn(true);
-        when(userDetailsService.loadUserByUsername(USERNAME)).thenReturn(userDetails);
+        when(jwtUtil.validateToken("valid_token", user)).thenReturn(true);
+        when(usersService.findByEmail(any())).thenReturn(user);
 
         // Act
         jwtAuthorizationFilter.doFilterInternal(request, response, chain);
@@ -98,7 +97,7 @@ class JwtAuthorizationFilterTest {
         // Arrange
         when(request.getHeader("Authorization")).thenReturn(INVALID_TOKEN);
         when(jwtUtil.extractUsernameFromToken("invalid_token")).thenReturn(USERNAME);
-        when(userDetailsService.loadUserByUsername(USERNAME)).thenReturn(null); // Simulate invalid user
+        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(null); // Simulate invalid user
 
         // Act
         jwtAuthorizationFilter.doFilterInternal(request, response, chain);

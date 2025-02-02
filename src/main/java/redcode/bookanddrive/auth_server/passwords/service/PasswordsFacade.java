@@ -2,6 +2,7 @@ package redcode.bookanddrive.auth_server.passwords.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import redcode.bookanddrive.auth_server.emails.EmailsService;
@@ -29,6 +30,7 @@ public class PasswordsFacade {
     private final OneTimeTokensService oneTimeTokensService;
     private final JwtUtil jwtUtil;
     private final EmailsService emailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void resetPassword(PasswordResetRequest passwordResetRequest, OneTimeToken oneTimeToken) {
@@ -44,7 +46,8 @@ public class PasswordsFacade {
         passwordValidationService.validate(newPassword, confirmPassword);
 
         try {
-            usersService.updatePassword(token.getUser().getEmail(), newPassword);
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            usersService.updatePassword(token.getUser().getEmail(), encodedPassword);
         } catch (ResourceNotFoundException e) {
             throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
         }
@@ -87,9 +90,11 @@ public class PasswordsFacade {
 
     private OneTimeToken enrichWithUserName(OneTimeToken token) {
         String userEmail = jwtUtil.extractUsernameFromToken(token.getToken());
+        String tenant = jwtUtil.extractTenantFromToken(token.getToken());
+        User user = usersService.findByUsernameAndTenantName(userEmail, tenant);
         return OneTimeToken.builder()
             .token(token.getToken())
-            .user(User.builder().email(userEmail).build())
+            .user(user)
             .build();
     }
 }

@@ -10,7 +10,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import redcode.bookanddrive.auth_server.users.model.User;
 
@@ -32,7 +31,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) {
-        String token = jwtUtil.generateToken((UserDetails) authResult.getPrincipal());
+        String token = jwtUtil.generateToken((User) authResult.getPrincipal());
         response.addHeader("Authorization", "Bearer " + token);
     }
 }

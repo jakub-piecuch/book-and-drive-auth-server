@@ -14,6 +14,7 @@ import javax.crypto.SecretKey;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import redcode.bookanddrive.auth_server.users.model.User;
 
 @Component
 public class JwtUtil {
@@ -28,12 +29,13 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(jwtPropertiesConfig.getSecret().getBytes());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(User userDetails) {
         Map<String, Object> claims = new HashMap<>();
         List<String> authorities = userDetails.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .toList();
         claims.put("scopes", authorities);
+        claims.put("tenant", userDetails.getTenantName());
 
         return createToken(claims, userDetails.getUsername());
     }
@@ -61,12 +63,21 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public String extractTenantFromToken(String token) {
+        return extractClaim(token, JwtUtil::getTenant);
+    }
+
     public LocalDateTime extractExpirationDate(String token) {
         Date expirationDate = extractClaim(token, Claims::getExpiration);
         LocalDateTime localDateTime = expirationDate.toInstant()
             .atZone(ZoneId.systemDefault()) // Use system default zone
             .toLocalDateTime();
         return localDateTime;
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsernameFromToken(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     private Date extractExpiration(String token) {
@@ -77,8 +88,7 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsernameFromToken(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public static String getTenant(Claims claims) {
+        return (String) claims.get("tenant");
     }
 }
