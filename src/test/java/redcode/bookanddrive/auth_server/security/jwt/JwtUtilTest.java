@@ -7,12 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redcode.bookanddrive.auth_server.data_generator.UsersGenerator.generateUser;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
+import redcode.bookanddrive.auth_server.users.model.User;
 
 class JwtUtilTest {
 
@@ -46,9 +47,7 @@ class JwtUtilTest {
     @Test
     void generateToken_ShouldReturnValidJwt() {
         // Arrange
-        UserDetails mockUser = mock(UserDetails.class);
-        when(mockUser.getUsername()).thenReturn("testUser");
-        when(mockUser.getAuthorities()).thenReturn(Collections.emptyList());
+        User mockUser = generateUser();
 
         // Act
         String token = jwtUtil.generateToken(mockUser);
@@ -61,10 +60,7 @@ class JwtUtilTest {
     @Test
     void extractUsernameFromToken_ShouldReturnCorrectUsername() {
         // Arrange
-        String username = "testUser";
-        UserDetails mockUser = mock(UserDetails.class);
-        when(mockUser.getUsername()).thenReturn(username);
-        when(mockUser.getAuthorities()).thenReturn(Collections.emptyList());
+        User mockUser = generateUser();
 
         String token = jwtUtil.generateToken(mockUser);
 
@@ -72,15 +68,13 @@ class JwtUtilTest {
         String extractedUsername = jwtUtil.extractUsernameFromToken(token);
 
         // Assert
-        assertEquals(username, extractedUsername);
+        assertEquals(mockUser.getUsername(), extractedUsername);
     }
 
     @Test
     void extractExpirationDate_ShouldReturnCorrectDate() {
         // Arrange
-        UserDetails mockUser = mock(UserDetails.class);
-        when(mockUser.getUsername()).thenReturn("testUser");
-        when(mockUser.getAuthorities()).thenReturn(Collections.emptyList());
+        User mockUser = generateUser();
 
         String token = jwtUtil.generateToken(mockUser);
 
@@ -97,9 +91,7 @@ class JwtUtilTest {
     @Test
     void validateToken_ShouldReturnTrueForValidToken() {
         // Arrange
-        UserDetails mockUser = mock(UserDetails.class);
-        when(mockUser.getUsername()).thenReturn("validUser");
-        when(mockUser.getAuthorities()).thenReturn(Collections.emptyList());
+        User mockUser = generateUser();
 
         String token = jwtUtil.generateToken(mockUser);
 
@@ -113,9 +105,7 @@ class JwtUtilTest {
     @Test
     void validateToken_ShouldReturnFalseForInvalidUser() {
         // Arrange
-        UserDetails mockUser = mock(UserDetails.class);
-        when(mockUser.getUsername()).thenReturn("validUser");
-        when(mockUser.getAuthorities()).thenReturn(Collections.emptyList());
+        User mockUser = generateUser();
 
         String token = jwtUtil.generateToken(mockUser);
 
@@ -132,9 +122,7 @@ class JwtUtilTest {
     @Test
     void validateToken_ShouldReturnFalseForExpiredToken() {
         // Arrange
-        UserDetails mockUser = mock(UserDetails.class);
-        when(mockUser.getUsername()).thenReturn("testUser");
-        when(mockUser.getAuthorities()).thenReturn(Collections.emptyList());
+        User mockUser = generateUser();
 
         // Manually create an expired token
         String expiredToken = Jwts.builder()

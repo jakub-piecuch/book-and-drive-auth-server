@@ -63,47 +63,37 @@ class OneTimeTokensServiceTest {
     }
 
     @Test
-    void testFindByUserId_Success() {
-        // Given: A mock token found in the repository
+    void testFindByUserEmailAndTenant_Success() {
+        // Given
         User user = generateUser();
         OneTimeToken oneTimeToken = OneTimeToken.builder()
             .id(UUID.randomUUID())
             .user(user)
             .token(jwtUtil.generateToken(user))
             .build();
-        OneTimeTokenEntity oneTimeTokenEntity = OneTimeTokenEntity.from(oneTimeToken);
+        OneTimeTokenEntity oneTimeTokenEntity = OneTimeTokenEntity.from(oneTimeToken); // Assuming default constructor exists
 
-        when(oneTimeTokenRepository.findByUserId(any(UUID.class))).thenReturn(Optional.of(oneTimeTokenEntity));
+        when(oneTimeTokenRepository.findByUserEmailAndUserTenantName(any(), any())).thenReturn(Optional.of(oneTimeTokenEntity));
 
-        // When: Calling findByUserId method
-        OneTimeToken foundToken = oneTimeTokensService.findByUserId(oneTimeToken.getUser().getId());
+        // When
+        OneTimeToken result = oneTimeTokensService.findByUserEmailAndTenant(any(), any());
 
-        // Then: Verifying repository call and result
-        verify(oneTimeTokenRepository, times(1)).findByUserId(any(UUID.class));
-        assertNotNull(foundToken);
-        assertEquals(oneTimeToken.getToken(), foundToken.getToken());
+        // Then
+        assertNotNull(result);
+        verify(oneTimeTokenRepository, times(1)).findByUserEmailAndUserTenantName(any(), any());
     }
 
     @Test
-    void testFindByUserId_ResourceNotFound() {
-        User user = generateUser();
-        OneTimeToken oneTimeToken = OneTimeToken.builder()
-            .id(UUID.randomUUID())
-            .user(user)
-            .token(jwtUtil.generateToken(user))
-            .build();
-        OneTimeTokenEntity oneTimeTokenEntity = OneTimeTokenEntity.from(oneTimeToken);
+    void testFindByUserEmailAndTenant_NotFound() {
+        // Given
+        when(oneTimeTokenRepository.findByUserEmailAndUserTenantName(any(), any()))
+            .thenReturn(Optional.empty());
 
-        // Given: No token found for the given user ID
-        when(oneTimeTokenRepository.findByUserId(any(UUID.class))).thenReturn(Optional.empty());
+        // When & Then
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+            () -> oneTimeTokensService.findByUserEmailAndTenant(any(), any()));
 
-        // When & Then: Expect a ResourceNotFoundException to be thrown
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            oneTimeTokensService.findByUserId(oneTimeToken.getUser().getId());
-        });
-
-        // Then: Assert exception message or type
         assertEquals(ResourceNotFoundException.RESOURCE_NOT_FOUND, exception.getMessage());
-        verify(oneTimeTokenRepository, times(1)).findByUserId(any(UUID.class));
+        verify(oneTimeTokenRepository, times(1)).findByUserEmailAndUserTenantName(any(), any());
     }
 }

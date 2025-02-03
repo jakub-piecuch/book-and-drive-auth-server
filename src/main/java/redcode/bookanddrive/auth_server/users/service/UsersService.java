@@ -2,13 +2,10 @@ package redcode.bookanddrive.auth_server.users.service;
 
 import static redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException.RESOURCE_NOT_FOUND;
 
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
-import redcode.bookanddrive.auth_server.passwords.utils.PasswordGenerator;
 import redcode.bookanddrive.auth_server.users.domain.UserEntity;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.repository.UsersRepository;
@@ -18,37 +15,31 @@ import redcode.bookanddrive.auth_server.users.repository.UsersRepository;
 public class UsersService {
 
     private final UsersRepository usersRepository;
-    private final PasswordEncoder passwordEncoder;
 
     public User save(User user) {
-        String encryptedPassword = passwordEncoder.encode(PasswordGenerator.generatePassword(12));
-        User userWithEncryptedPassword = user.toBuilder()
-            .password(encryptedPassword)
-            .build();
-        UserEntity userEntity = UserEntity.from(userWithEncryptedPassword);
+        UserEntity userEntity = UserEntity.from(user);
         UserEntity savedUser = usersRepository.save(userEntity);
 
         return User.from(savedUser);
     }
 
-    public User updatePassword(String email, String newPassword) {
-        UserEntity existingUser = usersRepository.findByEmail(email)
+    public User updatePassword(User user, String encodedPassword) {
+        String userName = user.getUsername();
+        String tenant = user.getTenantName();
+        UserEntity existingUserWithUpdatedPassword = usersRepository.findByEmailAndTenantName(userName, tenant)
+            .map(entity -> entity.toBuilder().password(encodedPassword).build())
             .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
 
-        String encryptedPassword = passwordEncoder.encode(newPassword);
-        UserEntity userWithUpdatedEncryptedPassword = existingUser.toBuilder()
-            .password(encryptedPassword)
-            .build();
-        usersRepository.save(userWithUpdatedEncryptedPassword);
+        UserEntity updatedUser = usersRepository.save(existingUserWithUpdatedPassword);
 
-        return User.from(userWithUpdatedEncryptedPassword);
+        return User.from(updatedUser);
     }
 
-    public List<User> getUsers() {
-        return usersRepository.findAll().stream()
-            .map(User::from)
-            .toList();
-    }
+//    public List<User> getUsers() {
+//        return usersRepository.findAll().stream()
+//            .map(User::from)
+//            .toList();
+//    }
 
     public User findById(UUID id) {
         return usersRepository.findById(id)
@@ -56,11 +47,11 @@ public class UsersService {
             .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
     }
 
-    public User findByEmail(String email) {
-        return usersRepository.findByEmail(email)
-            .map(User::from)
-            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
-    }
+//    public User findByEmail(String email) {
+//        return usersRepository.findByEmail(email)
+//            .map(User::from)
+//            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
+//    }
 
     public User updateById(UUID id, User user) {
         return usersRepository.findById(id)
@@ -83,5 +74,11 @@ public class UsersService {
 
     public boolean existsById(UUID id) {
         return usersRepository.existsById(id);
+    }
+
+    public User findByUsernameAndTenantName(String userName, String tenant) {
+        return usersRepository.findByEmailAndTenantName(userName, tenant)
+            .map(User::from)
+            .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
     }
 }

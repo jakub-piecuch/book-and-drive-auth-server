@@ -2,6 +2,7 @@ package redcode.bookanddrive.auth_server.passwords.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import redcode.bookanddrive.auth_server.emails.EmailsService;
@@ -29,67 +30,43 @@ public class PasswordsFacade {
     private final OneTimeTokensService oneTimeTokensService;
     private final JwtUtil jwtUtil;
     private final EmailsService emailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void resetPassword(PasswordResetRequest passwordResetRequest, OneTimeToken oneTimeToken) {
+    public void resetPassword(PasswordResetRequest passwordResetRequest, OneTimeToken requestToken) {
         String newPassword = passwordResetRequest.newPassword();
         String confirmPassword = passwordResetRequest.confirmPassword();
-        OneTimeToken token = enrichWithUserName(oneTimeToken);
-
-        log.info("Resetting password for email: {}", token.getUser().getEmail());
-        tokenValidationService.validate(token);
-        token.use();
-        oneTimeTokensService.save(token);
+        String userEmail = requestToken.getUser().getEmail();
+        String tenantName = requestToken.getUser().getTenantName();
 
         passwordValidationService.validate(newPassword, confirmPassword);
 
+        OneTimeToken existingToken = oneTimeTokensService.findByUserEmailAndTenant(userEmail, tenantName);
+        tokenValidationService.validate(requestToken, existingToken);
+
         try {
-            usersService.updatePassword(token.getUser().getEmail(), newPassword);
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            log.info("Resetting password for email: {}", userEmail);
+            usersService.updatePassword(existingToken.getUser(), encodedPassword);
+
+            requestToken.use();
+            oneTimeTokensService.save(requestToken);
         } catch (ResourceNotFoundException e) {
+            log.error("Could not find user from the token: {}", userEmail);
             throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
         }
     }
 
     @Transactional
-    public void sendResetPasswordEmail(OneTimeToken oneTimeToken) throws FailedEmailException {
-        OneTimeToken token = enrichWithUserName(oneTimeToken);
-        User existingUser = usersService.findByEmail(token.getUser().getEmail());
-        OneTimeToken existingToken = oneTimeTokensService.findByUserId(existingUser.getId());
-        OneTimeToken generatedToken = tokenGenerationService.generateToken(existingUser);
-        existingToken.setToken(generatedToken.getToken());
-        OneTimeToken savedToken = oneTimeTokensService.save(existingToken);
+    public void sendForgotPasswordEmailFor(String email, String tenant) throws FailedEmailException {
+        User existingUser = usersService.findByUsernameAndTenantName(email, tenant);
 
-        //TODO temporary before I add an email service
-        log.info("User: {} requested new token: {}", savedToken.getUser().getEmail(), savedToken.getToken());
-        emailsService.sendPasswordResetEmail(savedToken);
-    }
-
-    @Transactional
-    public void sendForgotPasswordEmail(OneTimeToken oneTimeToken) throws FailedEmailException {
-        User existingUser = usersService.findByEmail(oneTimeToken.getUser().getEmail());
-        OneTimeToken existingToken = OneTimeToken.builder()
-            .user(existingUser)
-            .build();
-        try {
-            existingToken = oneTimeTokensService.findByUserId(existingUser.getId());
-        } catch (ResourceNotFoundException ex) {
-            log.info("OneTimeToken does not exist for user: {}", existingUser.getEmail());
-        }
-        OneTimeToken generatedToken = tokenGenerationService.generateToken(existingUser);
-        existingToken.setToken(generatedToken.getToken());
-        OneTimeToken savedToken = oneTimeTokensService.save(existingToken);
+        OneTimeToken newTokenWithUser = tokenGenerationService.generateToken(existingUser);
+        OneTimeToken savedToken = oneTimeTokensService.save(newTokenWithUser);
 
         //TODO temporary before I add an email service
         log.info("User: {} requested new token: {}", savedToken.getUser().getEmail(), savedToken.getToken());
 
         emailsService.sendPasswordResetEmail(savedToken);
-    }
-
-    private OneTimeToken enrichWithUserName(OneTimeToken token) {
-        String userEmail = jwtUtil.extractUsernameFromToken(token.getToken());
-        return OneTimeToken.builder()
-            .token(token.getToken())
-            .user(User.builder().email(userEmail).build())
-            .build();
     }
 }

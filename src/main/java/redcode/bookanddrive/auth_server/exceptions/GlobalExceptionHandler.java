@@ -24,7 +24,6 @@ public class GlobalExceptionHandler {
         Exception ex, WebRequest request) {
         log.error("Request: {}, has failed with exception.", request, ex);
 
-
         HttpMediaTypeNotAcceptableException exception = (HttpMediaTypeNotAcceptableException) ex;
         ErrorDetails errorDetails = ErrorDetails.builder()
             .timestamp(LocalDateTime.now())
@@ -125,16 +124,52 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDetails> hanldeBadCredentialsException(BadCredentialsException ex) {
         ErrorDetails errorDetails = ErrorDetails.builder()
             .timestamp(LocalDateTime.now())
+            .status(HttpStatus.UNAUTHORIZED.value())
+            .reason(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+            .message("Incorrect username or password.")
+            .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(InvalidRequestHeaderException.class)
+    public ResponseEntity<ErrorDetails> handleInvalidRequestHeaderException(InvalidRequestHeaderException ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
             .status(HttpStatus.BAD_REQUEST.value())
             .reason(HttpStatus.BAD_REQUEST.getReasonPhrase())
-            .message("Incorrect username or password.")
+            .message(ex.getMessage())
             .build();
 
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(MissingAuthorizationToken.class)
-    public ResponseEntity<ErrorDetails> handleMissingAuthorizationTokenException(MissingAuthorizationToken ex) {
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorDetails> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .reason(HttpStatus.BAD_REQUEST.getReasonPhrase())
+            .message(ex.getMessage())
+            .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserDoesNotExistException.class)
+    public ResponseEntity<ErrorDetails> handleUserDoesNotExistException(UserDoesNotExistException ex) {
+        ErrorDetails errorDetails = ErrorDetails.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.NOT_FOUND.value())
+            .reason(HttpStatus.NOT_FOUND.getReasonPhrase())
+            .message(ex.getMessage())
+            .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(MissingAuthorizationTokenExcetion.class)
+    public ResponseEntity<ErrorDetails> handleMissingAuthorizationTokenException(MissingAuthorizationTokenExcetion ex) {
         ErrorDetails errorDetails = ErrorDetails.builder()
             .timestamp(LocalDateTime.now())
             .status(HttpStatus.BAD_REQUEST.value())

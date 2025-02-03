@@ -7,24 +7,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static redcode.bookanddrive.auth_server.data_generator.UsersGenerator.generateUser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import redcode.bookanddrive.auth_server.users.model.User;
 
+@ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
 
     private static final String EMAIL = "testuser@example.com";
@@ -33,29 +35,19 @@ class JwtAuthenticationFilterTest {
 
     @Mock
     private AuthenticationManager authenticationManager;
-
     @Mock
     private JwtUtil jwtUtil;
-
     @Mock
     private ObjectMapper objectMapper;
-
     @Mock
     private FilterChain filterChain;
-
     @Mock
     private HttpServletRequest request;
-
     @Mock
     private HttpServletResponse response;
 
+    @InjectMocks
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, jwtUtil);
-    }
 
     @Test
     void attemptAuthentication_ShouldAuthenticateUser() throws IOException {
@@ -89,10 +81,10 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void successfulAuthentication_ShouldGenerateTokenAndAddToHeader() throws Exception {
+    void successfulAuthentication_ShouldGenerateTokenAndAddToHeader() {
         // Arrange
         Authentication authentication = mock(Authentication.class);
-        UserDetails userDetails = mock(UserDetails.class);
+        User userDetails = generateUser();
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(jwtUtil.generateToken(userDetails)).thenReturn(JWT_TOKEN);
 
@@ -105,9 +97,6 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void attemptAuthentication_ShouldThrowException_WhenInvalidJson() throws IOException {
-        // Arrange
-        when(objectMapper.readValue(request.getInputStream(), User.class)).thenThrow(new IOException("Invalid JSON"));
-
         // Act & Assert
         assertThrows(RuntimeException.class, () -> jwtAuthenticationFilter.attemptAuthentication(request, response));
     }

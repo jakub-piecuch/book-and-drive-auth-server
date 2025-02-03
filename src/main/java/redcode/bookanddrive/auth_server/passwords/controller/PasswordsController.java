@@ -1,21 +1,25 @@
 package redcode.bookanddrive.auth_server.passwords.controller;
 
+import static redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException.INVALID_REQUEST_HEADER;
+
 import jakarta.validation.Valid;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.WebRequest;
+import redcode.bookanddrive.auth_server.auth.token.AuthenticationToken;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
-import redcode.bookanddrive.auth_server.exceptions.MissingAuthorizationToken;
+import redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
-import redcode.bookanddrive.auth_server.users.model.User;
+import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
 
 @Slf4j
 @RestController()
@@ -25,32 +29,17 @@ public class PasswordsController {
 
     private final PasswordsFacade passwordsFacade;
 
-    //This seems irrelevant endpoint
-    @PostMapping("/reset-request")
-    public ResponseEntity<Void> resetRequest(
-        WebRequest webRequest
-    ) throws FailedEmailException {
-        if (webRequest.getHeader("Authorization") == null) {
-            throw MissingAuthorizationToken.of(MissingAuthorizationToken.MISSING_AUTH_TOKEN);
-        }
-
-        String authorization = webRequest.getHeader("Authorization");
-        String extractedJwt = authorization.substring(6);
-
-        passwordsFacade.sendResetPasswordEmail(OneTimeToken.from(extractedJwt));
-
-        return ResponseEntity.ok()
-            .build();
-    }
-
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
         @RequestParam("email") String email
     ) throws FailedEmailException {
-        OneTimeToken oneTimeToken = OneTimeToken.builder()
-            .user(User.builder().email(email).build())
-            .build();
-        passwordsFacade.sendForgotPasswordEmail(oneTimeToken);
+        String tenant = Optional.ofNullable(TenantContext.getTenantId())
+                .orElseThrow(() -> {
+                    log.error("Tenant header is empty.");
+                    return InvalidRequestHeaderException.of(INVALID_REQUEST_HEADER);
+                });
+
+        passwordsFacade.sendForgotPasswordEmailFor(email, tenant);
 
         return ResponseEntity.ok()
             .build();
@@ -58,11 +47,19 @@ public class PasswordsController {
 
     @PostMapping("/reset")
     public ResponseEntity<String> resetPassword(
-        @Valid @RequestBody PasswordResetRequest passwordResetRequest,
-        @RequestParam("token") String oneTimeToken
+        @Valid @RequestBody PasswordResetRequest passwordResetRequest
     ) {
-        OneTimeToken token = OneTimeToken.from(oneTimeToken);
-        passwordsFacade.resetPassword(passwordResetRequest, token);
+        AuthenticationToken authToken = ((AuthenticationToken) (SecurityContextHolder.getContext()).getAuthentication());
+        String userEmail = authToken.getUsername();
+        String tenantName = authToken.getTenant();
+        String token = authToken.getToken().replace("Bearer ", "");
+        OneTimeToken requestToken = OneTimeToken.buildRequestToken(
+            userEmail,
+            tenantName,
+            token
+        );
+
+        passwordsFacade.resetPassword(passwordResetRequest, requestToken);
 
         return ResponseEntity.ok("Password has been successfully reset.");
     }

@@ -2,7 +2,6 @@ package redcode.bookanddrive.auth_server.passwords.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import redcode.bookanddrive.auth_server.emails.EmailsService;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
@@ -30,22 +30,24 @@ import redcode.bookanddrive.auth_server.users.service.UsersService;
 @ExtendWith(MockitoExtension.class)
 class PasswordsFacadeTest {
     @Mock
-    private PasswordValidationService passwordValidationService;
+    PasswordValidationService passwordValidationService;
     @Mock
-    private TokenValidationService tokenValidationService;
+    TokenValidationService tokenValidationService;
     @Mock
-    private TokenGenerationService tokenGenerationService;
+    TokenGenerationService tokenGenerationService;
     @Mock
-    private UsersService usersService;
+    UsersService usersService;
     @Mock
-    private OneTimeTokensService oneTimeTokensService;
+    OneTimeTokensService oneTimeTokensService;
     @Mock
-    private JwtUtil jwtUtil;
+    JwtUtil jwtUtil;
     @Mock
-    private EmailsService emailsService;
+    EmailsService emailsService;
+    @Mock
+    PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private PasswordsFacade passwordsFacade;
+    PasswordsFacade passwordsFacade;
 
     @Test
     void testResetPassword_Success() {
@@ -60,7 +62,8 @@ class PasswordsFacadeTest {
             .confirmPassword("newPassword")
             .build();
 
-        when(jwtUtil.extractUsernameFromToken(any())).thenReturn(user.getEmail());
+        when(oneTimeTokensService.findByUserEmailAndTenant(any(), any())).thenReturn(token);
+        when(passwordEncoder.encode(any())).thenReturn("encodedPass");
         when(oneTimeTokensService.save(any())).thenReturn(token);
         when(usersService.updatePassword(any(), any())).thenReturn(null);
 
@@ -68,9 +71,9 @@ class PasswordsFacadeTest {
         passwordsFacade.resetPassword(passwordResetRequest, token);
 
         // Then: Verify interactions and expected behavior
-        verify(tokenValidationService, times(1)).validate(any(OneTimeToken.class));
+        verify(tokenValidationService, times(1)).validate(any(), any());
         verify(passwordValidationService, times(1)).validate("newPassword", "newPassword");
-        verify(usersService, times(1)).updatePassword(anyString(), anyString());
+        verify(usersService, times(1)).updatePassword(any(), any());
         verify(oneTimeTokensService, times(1)).save(any(OneTimeToken.class));
     }
 
@@ -84,13 +87,14 @@ class PasswordsFacadeTest {
             .build();
         PasswordResetRequest passwordResetRequest = new PasswordResetRequest("newPassword", "newPassword");
 
-        when(usersService.updatePassword(any(), any())).thenThrow(InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN));
+        when(oneTimeTokensService.findByUserEmailAndTenant(any(), any())).thenReturn(token);
+        when(usersService.updatePassword(any(), any())).thenThrow(ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
 
         assertThrows(InvalidTokenException.class, () ->
             passwordsFacade.resetPassword(passwordResetRequest, token));
 
 
-        verify(tokenValidationService, times(1)).validate(any(OneTimeToken.class));
+        verify(tokenValidationService, times(1)).validate(any(), any());
     }
 
     @Test
@@ -101,17 +105,15 @@ class PasswordsFacadeTest {
             .token(jwtUtil.generateToken(user))
             .build();
         // Given: Prepare inputs and mocked data
-        when(jwtUtil.extractUsernameFromToken(any())).thenReturn(user.getEmail());
-        when(usersService.findByEmail(any())).thenReturn(user);
-        when(oneTimeTokensService.findByUserId(any())).thenReturn(token);
+        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
         when(tokenGenerationService.generateToken(any(User.class))).thenReturn(token);
         when(oneTimeTokensService.save(any(OneTimeToken.class))).thenReturn(token);
 
         // When: Call the method
-        passwordsFacade.sendResetPasswordEmail(token);
+        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantName());
 
         // Then: Verify interactions and expected behavior
-        verify(usersService, times(1)).findByEmail(anyString());
+        verify(usersService, times(1)).findByUsernameAndTenantName(any(), any());
         verify(tokenGenerationService, times(1)).generateToken(any(User.class));
         verify(oneTimeTokensService, times(1)).save(any(OneTimeToken.class));
     }
@@ -124,17 +126,15 @@ class PasswordsFacadeTest {
             .token(jwtUtil.generateToken(user))
             .build();
         // Given: Prepare inputs and mocked data
-        when(usersService.findByEmail(anyString())).thenReturn(user);
-        when(oneTimeTokensService.findByUserId(any())).thenReturn(token);
+        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
         when(tokenGenerationService.generateToken(any(User.class))).thenReturn(token);
         when(oneTimeTokensService.save(any(OneTimeToken.class))).thenReturn(token);
 
         // When: Call the method
-        passwordsFacade.sendForgotPasswordEmail(token);
+        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantName());
 
         // Then: Verify interactions and expected behavior
-        verify(usersService, times(1)).findByEmail(anyString());
-        verify(oneTimeTokensService, times(1)).findByUserId(any());
+        verify(usersService, times(1)).findByUsernameAndTenantName(any(), any());
         verify(tokenGenerationService, times(1)).generateToken(any(User.class));
         verify(oneTimeTokensService, times(1)).save(any(OneTimeToken.class));
     }
@@ -147,16 +147,14 @@ class PasswordsFacadeTest {
             .token(jwtUtil.generateToken(user))
             .build();
         // Given: Prepare inputs
-        when(usersService.findByEmail(anyString())).thenReturn(user);
-        when(oneTimeTokensService.findByUserId(any())).thenThrow(ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
+        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
         when(tokenGenerationService.generateToken(any(User.class))).thenReturn(token);
         when(oneTimeTokensService.save(any(OneTimeToken.class))).thenReturn(token);
 
         // When: Call the method
-        passwordsFacade.sendForgotPasswordEmail(token);
+        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantName());
 
         // Then: Verify interactions, the exception is caught and handled gracefully
-        verify(oneTimeTokensService, times(1)).findByUserId(any());
         verify(tokenGenerationService, times(1)).generateToken(any(User.class));
         verify(oneTimeTokensService, times(1)).save(any(OneTimeToken.class));
     }

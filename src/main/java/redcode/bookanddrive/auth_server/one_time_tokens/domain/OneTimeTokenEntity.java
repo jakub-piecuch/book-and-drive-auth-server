@@ -30,7 +30,7 @@ public class OneTimeTokenEntity {
     private UUID id;
 
     @NotNull
-    @Column(nullable = false, columnDefinition = "CHAR(256)")
+    @Column(nullable = false, columnDefinition = "VarChar(512)")
     private String token;
 
     private boolean isUsed;

@@ -1,7 +1,7 @@
 package redcode.bookanddrive.auth_server.data_generator;
 
 import static redcode.bookanddrive.auth_server.data_generator.TenantsGenerator.generateTenant;
-import static redcode.bookanddrive.auth_server.users.domain.RoleEnumEntity.USER_WRITE;
+import static redcode.bookanddrive.auth_server.users.domain.RoleEnumEntity.USERS_WRITE;
 
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +19,7 @@ public class UsersGenerator {
             .firstName("test")
             .lastName("test")
             .tenant(TenantsGenerator.generateTenantEntity())
-            .roles(Set.of(USER_WRITE))
+            .roles(Set.of(USERS_WRITE))
             .email("email@test.com")
             .build();
     }
@@ -30,7 +30,7 @@ public class UsersGenerator {
             .firstName("test")
             .lastName("test")
             .tenant(generateTenant())
-            .roles(Set.of(RoleEnum.USER_WRITE))
+            .roles(Set.of(RoleEnum.USERS_WRITE))
             .email("test@example.com")
             .build();
     }

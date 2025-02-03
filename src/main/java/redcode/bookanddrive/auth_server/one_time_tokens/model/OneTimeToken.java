@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import redcode.bookanddrive.auth_server.one_time_tokens.domain.OneTimeTokenEntity;
+import redcode.bookanddrive.auth_server.tenants.model.Tenant;
 import redcode.bookanddrive.auth_server.users.model.User;
 
 @Data
@@ -31,9 +32,21 @@ public class OneTimeToken {
             .build();
     }
 
-    public static OneTimeToken from(String oneTimeJwt) {
+    public static OneTimeToken from(String requestToken) {
         return OneTimeToken.builder()
-            .token(oneTimeJwt)
+            .token(requestToken)
+            .build();
+    }
+
+    public static OneTimeToken buildRequestToken(String userEmail, String tenantName, String token) {
+        return OneTimeToken.builder()
+            .user(User.builder()
+                .email(userEmail)
+                .tenant(Tenant.builder()
+                    .name(tenantName)
+                    .build())
+                .build())
+            .token(token)
             .build();
     }
 }

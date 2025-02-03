@@ -6,9 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import redcode.bookanddrive.auth_server.exceptions.InvalidTokenException;
-import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
-import redcode.bookanddrive.auth_server.one_time_tokens.repository.OneTimeTokenRepository;
 import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 
 @Slf4j
@@ -17,25 +15,16 @@ import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 public class TokenValidationService {
 
     public static final String TOKEN_WAS_USED_ALREADY = "Token was used already.";
-    private final OneTimeTokenRepository oneTimeTokenRepository;
     private final JwtUtil jwtUtil;
 
-    public void validate(OneTimeToken oneTimeToken) {
-        String email = oneTimeToken.getUser().getEmail();
-        OneTimeToken existingToken = oneTimeTokenRepository.findByUserEmail(email)
-            .map(OneTimeToken::from)
-            .orElseThrow(() -> {
-                log.error("Token does not exist in he database.");
-                return ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND);
-            });
-
-        validateIfBelongsToUser(oneTimeToken, existingToken);
+    public void validate(OneTimeToken requestToken, OneTimeToken existingToken) {
+        validateIfBelongsToUser(requestToken, existingToken);
         validateIfUsed(existingToken);
         validateIfExpired(existingToken);
     }
 
-    private void validateIfBelongsToUser(OneTimeToken oneTimeToken, OneTimeToken existingToken) {
-        if (!Objects.equals(oneTimeToken.getToken(), existingToken.getToken())) {
+    private void validateIfBelongsToUser(OneTimeToken requestToken, OneTimeToken existingToken) {
+        if (!Objects.equals(requestToken.getToken(), existingToken.getToken())) {
             log.error("Token from the request does not match the user's oneTimeToken.");
             throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
         }

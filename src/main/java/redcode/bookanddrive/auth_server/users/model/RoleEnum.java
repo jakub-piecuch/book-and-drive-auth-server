@@ -6,10 +6,12 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum RoleEnum {
-    LESSON_READ("lessons:read"),
-    LESSON_WRITE("lessons:write"),
-    USER_READ("users:read"),
-    USER_WRITE("users:write"),
+    LESSONS_READ("lessons:read"),
+    LESSONS_WRITE("lessons:write"),
+    USERS_READ("users:read"),
+    USERS_WRITE("users:write"),
+    TENANTS_WRITE("tenants:write"),
+    TENANTS_READ("tenants:read"),
     SUPER_ADMIN("super:admin");
 
     private final String scope;

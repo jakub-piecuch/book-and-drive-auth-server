@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Set;
@@ -34,7 +35,12 @@ import redcode.bookanddrive.auth_server.users.model.User;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "_user")
+@Table(
+    name = "_user",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"email", "tenant_id"}) // Ensure email is unique per tenant
+    }
+)
 public class UserEntity implements UserDetails {
 
     @Id
@@ -47,7 +53,7 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
@@ -60,7 +66,7 @@ public class UserEntity implements UserDetails {
     private Set<RoleEnumEntity> roles;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "tenant_id", nullable = false)
     private TenantEntity tenant;
 
