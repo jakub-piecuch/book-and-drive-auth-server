@@ -82,7 +82,7 @@ class JwtAuthorizationFilterTest {
         User user = User.builder().email(USERNAME).password("").roles(Set.of(USERS_READ)).build();
         when(jwtUtil.extractUsernameFromToken("valid_token")).thenReturn(USERNAME);
         when(jwtUtil.validateToken("valid_token", user)).thenReturn(true);
-        when(usersService.findByEmail(any())).thenReturn(user);
+        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
 
         // Act
         jwtAuthorizationFilter.doFilterInternal(request, response, chain);

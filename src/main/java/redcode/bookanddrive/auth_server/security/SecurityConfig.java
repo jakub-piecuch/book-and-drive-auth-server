@@ -4,11 +4,10 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -34,24 +33,20 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf
+        return http.csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/**"))
-            .httpBasic(Customizer.withDefaults())
-            .formLogin(Customizer.withDefaults())
+            .sessionManagement(configurer -> configurer
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
                 .requestMatchers("/api/passwords/reset").authenticated()
                 .requestMatchers("/api/passwords/**").permitAll()
                 .requestMatchers("/api/tenants/**").authenticated()
                 .requestMatchers("/api/users/**").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/**").permitAll()
                 .anyRequest().authenticated())
-            .headers(headers -> headers
-                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
             .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtUtil))
-            .addFilter(new JwtAuthorizationFilter(authenticationManager, jwtUtil, usersService));
-
-        return http.build();
+            .addFilter(new JwtAuthorizationFilter(authenticationManager, jwtUtil, usersService))
+            .build();
     }
 
     @Bean

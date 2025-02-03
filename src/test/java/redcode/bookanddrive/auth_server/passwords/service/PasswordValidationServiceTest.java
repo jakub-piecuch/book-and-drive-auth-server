@@ -5,18 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static redcode.bookanddrive.auth_server.exceptions.PasswordsMismatchException.PASSWORD_MISMATCH;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import redcode.bookanddrive.auth_server.exceptions.PasswordsMismatchException;
 
+@ExtendWith(MockitoExtension.class)
 class PasswordValidationServiceTest {
 
+    @InjectMocks
     private PasswordValidationService passwordValidationService;
-
-    @BeforeEach
-    void setUp() {
-        passwordValidationService = new PasswordValidationService();
-    }
 
     @Test
     void validate_whenPasswordsMatch_shouldNotThrowException() {

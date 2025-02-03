@@ -1,7 +1,5 @@
 package redcode.bookanddrive.auth_server.one_time_tokens.service;
 
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,10 +39,5 @@ public class OneTimeTokensService {
                 log.error("Token does not exist in the database.");
                 return ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND);
             });
-    }
-
-    public Optional<OneTimeToken> findByUserId(UUID id) {
-        return oneTimeTokenRepository.findByUserId(id)
-            .map(OneTimeToken::from);
     }
 }

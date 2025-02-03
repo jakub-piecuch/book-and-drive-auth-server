@@ -10,5 +10,4 @@ import redcode.bookanddrive.auth_server.one_time_tokens.domain.OneTimeTokenEntit
 public interface OneTimeTokenRepository extends JpaRepository<OneTimeTokenEntity, UUID> {
 
     Optional<OneTimeTokenEntity> findByUserEmailAndUserTenantName(String email, String tenantName);
-    Optional<OneTimeTokenEntity> findByUserId(UUID userId);
 }
