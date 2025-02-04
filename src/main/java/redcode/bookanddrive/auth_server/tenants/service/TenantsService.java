@@ -42,9 +42,8 @@ public class TenantsService {
 
     public Tenant getTenantByName(String name) {
         log.info("Searching for tenant by name: {}", name);
-        TenantEntity tenant = tenantsRepository.findByName(name)
+        return tenantsRepository.findByName(name)
+            .map(Tenant::from)
             .orElseThrow(() -> ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND));
-
-        return Tenant.from(tenant);
     }
 }
