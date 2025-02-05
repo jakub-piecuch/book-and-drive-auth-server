@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import redcode.bookanddrive.auth_server.auth.token.AuthenticationToken;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException;
+import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
@@ -34,15 +35,20 @@ public class PasswordsController {
         @RequestParam("email") String email
     ) throws FailedEmailException {
         String tenant = Optional.ofNullable(TenantContext.getTenantId())
-                .orElseThrow(() -> {
-                    log.error("Tenant header is empty.");
-                    return InvalidRequestHeaderException.of(INVALID_REQUEST_HEADER);
-                });
+            .orElseThrow(() -> {
+                log.error("Tenant header is empty.");
+                return InvalidRequestHeaderException.of(INVALID_REQUEST_HEADER);
+            });
 
-        passwordsFacade.sendForgotPasswordEmailFor(email, tenant);
-
-        return ResponseEntity.ok()
-            .build();
+        try {
+            passwordsFacade.sendForgotPasswordEmailFor(email, tenant);
+            return ResponseEntity.ok()
+                .build();
+        } catch (ResourceNotFoundException e) {
+            log.warn("User with email: {}, was not found in the system to send reset password link.", email);
+            return ResponseEntity.ok()
+                .build();
+        }
     }
 
     @PostMapping("/reset")

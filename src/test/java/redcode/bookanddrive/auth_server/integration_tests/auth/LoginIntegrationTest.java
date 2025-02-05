@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.integration_tests.users;
+package redcode.bookanddrive.auth_server.integration_tests.auth;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,8 +32,6 @@ import redcode.bookanddrive.auth_server.auth.controller.dto.AuthenticationReques
 import redcode.bookanddrive.auth_server.auth.controller.dto.AuthenticationResponse;
 import redcode.bookanddrive.auth_server.integration_tests.date_generator_utils.TenantDataGenerator;
 import redcode.bookanddrive.auth_server.integration_tests.date_generator_utils.UsersDataGenerator;
-import redcode.bookanddrive.auth_server.tenants.repository.TenantsRepository;
-import redcode.bookanddrive.auth_server.users.repository.UsersRepository;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -50,10 +48,6 @@ public class LoginIntegrationTest {
 
     @Autowired
     TestRestTemplate restTemplate;
-    @Autowired
-    TenantsRepository tenantsRepository;
-    @Autowired
-    UsersRepository usersRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
 
@@ -133,7 +127,7 @@ public class LoginIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody().jwt()).isNull();
+        assertThat(response.getBody()).isNull();
     }
 
     @Test()
@@ -168,7 +162,7 @@ public class LoginIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody().jwt()).isNull();
+        assertThat(response.getBody()).isNull();
     }
 
     @Test()
@@ -194,7 +188,7 @@ public class LoginIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody().jwt()).isNull();
+        assertThat(response.getBody()).isNull();
     }
 
     @Test()

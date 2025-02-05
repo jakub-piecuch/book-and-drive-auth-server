@@ -105,14 +105,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ErrorDetails> handleInvalidTokenException(InvalidTokenException ex) {
-        ErrorDetails errorDetails = ErrorDetails.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .reason(HttpStatus.BAD_REQUEST.getReasonPhrase())
-            .message(ex.getMessage())
-            .build();
-
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
@@ -158,14 +151,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserDoesNotExistException.class)
     public ResponseEntity<ErrorDetails> handleUserDoesNotExistException(UserDoesNotExistException ex) {
-        ErrorDetails errorDetails = ErrorDetails.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.UNAUTHORIZED.value())
-            .reason(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-            .message(ex.getMessage())
-            .build();
-
-        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(MissingAuthorizationTokenExcetion.class)

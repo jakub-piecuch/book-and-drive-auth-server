@@ -1,6 +1,8 @@
 package redcode.bookanddrive.auth_server.security.jwt;
 
+import static java.util.Objects.nonNull;
 import static redcode.bookanddrive.auth_server.exceptions.TenantMismatchException.TENANT_MISMATCH;
+import static redcode.bookanddrive.auth_server.users.model.RoleEnum.SUPER_ADMIN;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -47,17 +49,22 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         String token = request.getHeader("Authorization");
         String tenantFromHeader = request.getHeader("X-Tenant-Id");
         AuthenticationToken authentication = null;
-        if (Objects.nonNull(token)) {
+        if (nonNull(token)) {
             String username = jwtUtil.extractUsernameFromToken(token.replace(BEARER_PREFIX, ""));
             String tenantFromJwt = jwtUtil.extractTenantFromToken(token.replace(BEARER_PREFIX, ""));
 
-            if (!Objects.equals(tenantFromHeader, tenantFromJwt)) {
-                log.error("Tenant from header does not match one from jwt");
-                throw TenantMismatchException.of(TENANT_MISMATCH);
-            }
-
-            if (Objects.nonNull(username)) {
+            if (nonNull(username) && nonNull(tenantFromJwt)) {
                 User userDetails = usersService.findByUsernameAndTenantName(username, tenantFromJwt);
+
+                if (!Objects.equals(tenantFromHeader, tenantFromJwt)) {
+                    if (!userDetails.getRoles().contains(SUPER_ADMIN)) {
+                        log.error("Tenant from header does not match one from jwt");
+                        throw TenantMismatchException.of(TENANT_MISMATCH);
+                    } else {
+                        log.warn("Super Admin is accessing a different tenant.");
+                    }
+                }
+
                 if (jwtUtil.validateToken(token.replace(BEARER_PREFIX, ""), userDetails)) {
                     authentication = new AuthenticationToken(
                         userDetails.getUsername(),
@@ -67,6 +74,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                         token
                     );
                 }
+            } else {
+                log.error("Username or tenant is null: {}, {}", username, tenantFromJwt);
             }
         }
         return authentication;

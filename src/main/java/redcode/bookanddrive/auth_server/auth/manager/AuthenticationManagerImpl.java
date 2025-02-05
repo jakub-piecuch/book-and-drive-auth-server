@@ -43,6 +43,7 @@ public class AuthenticationManagerImpl implements AuthenticationManager {
                 ((AuthenticationToken) authentication).getToken()
             );
         } catch (ResourceNotFoundException e) {
+            log.error(UserDoesNotExistException.USER_DOES_NOT_EXIST);
             throw UserDoesNotExistException.of(UserDoesNotExistException.USER_DOES_NOT_EXIST);
         } catch (
             PasswordsMismatchException e) {

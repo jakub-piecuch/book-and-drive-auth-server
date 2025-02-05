@@ -54,7 +54,7 @@ public class UsersFacade {
             emailService.sendPasswordResetEmail(oneTimeToken);
 
             // TODO do wyrzucenia jak beda dzialac emaile
-            log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken);
+            log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken.getToken());
 
             return createdUser;
         }

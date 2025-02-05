@@ -26,9 +26,12 @@ import redcode.bookanddrive.auth_server.users.service.UsersService;
 @ExtendWith(MockitoExtension.class)
 class JwtAuthorizationFilterTest {
 
-    private static final String VALID_TOKEN = "Bearer valid_token";
+    private static final String VALID_TOKEN = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ"
+        + "zY29wZXMiOltdLCJ0ZW5hbnQiOiJ0ZXN0VGVuYW50Iiwic3ViIjoidXNlcjJAZW1haWwuY"
+        + "29tIiwiaWF0IjoxNzM4Nzg2Njk3LCJleHAiOjE3Mzg3OTAyOTd9.MFbTTKL4nI3BCTysc71"
+        + "jWpiB59lx0oGAATxaE1sGl0-g5oFbtdoSNhK2B2wI4EdcWDYjhekjvwMYnPwEE0NUfg";
     private static final String INVALID_TOKEN = "Bearer invalid_token";
-    private static final String USERNAME = "testUser";
+    private static final String USERNAME = "user@email.com";
 
     @Mock
     private JwtUtil jwtUtil;
@@ -78,10 +81,12 @@ class JwtAuthorizationFilterTest {
     @Test
     void doFilterInternal_WhenValidToken_ShouldSetAuthentication() throws Exception {
         // Arrange
+        when(request.getHeader("X-Tenant-Id")).thenReturn("testTenant");
         when(request.getHeader("Authorization")).thenReturn(VALID_TOKEN);
         User user = User.builder().email(USERNAME).password("").roles(Set.of(USERS_READ)).build();
-        when(jwtUtil.extractUsernameFromToken("valid_token")).thenReturn(USERNAME);
-        when(jwtUtil.validateToken("valid_token", user)).thenReturn(true);
+        when(jwtUtil.extractUsernameFromToken(VALID_TOKEN.replace("Bearer ", ""))).thenReturn(USERNAME);
+        when(jwtUtil.extractTenantFromToken(VALID_TOKEN.replace("Bearer ", ""))).thenReturn("testTenant");
+        when(jwtUtil.validateToken(VALID_TOKEN.replace("Bearer ", ""), user)).thenReturn(true);
         when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
 
         // Act
@@ -97,7 +102,6 @@ class JwtAuthorizationFilterTest {
         // Arrange
         when(request.getHeader("Authorization")).thenReturn(INVALID_TOKEN);
         when(jwtUtil.extractUsernameFromToken("invalid_token")).thenReturn(USERNAME);
-        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(null); // Simulate invalid user
 
         // Act
         jwtAuthorizationFilter.doFilterInternal(request, response, chain);

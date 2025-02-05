@@ -1,6 +1,7 @@
 package redcode.bookanddrive.auth_server.integration_tests.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static redcode.bookanddrive.auth_server.users.domain.RoleEnumEntity.SUPER_ADMIN;
 import static redcode.bookanddrive.auth_server.users.domain.RoleEnumEntity.USERS_READ;
 import static redcode.bookanddrive.auth_server.users.domain.RoleEnumEntity.USERS_WRITE;
 
@@ -30,10 +31,8 @@ import redcode.bookanddrive.auth_server.auth.controller.dto.AuthenticationRespon
 import redcode.bookanddrive.auth_server.exceptions.ErrorDetails;
 import redcode.bookanddrive.auth_server.integration_tests.date_generator_utils.TenantDataGenerator;
 import redcode.bookanddrive.auth_server.integration_tests.date_generator_utils.UsersDataGenerator;
-import redcode.bookanddrive.auth_server.tenants.repository.TenantsRepository;
 import redcode.bookanddrive.auth_server.users.controller.dto.CreateUserRequest;
 import redcode.bookanddrive.auth_server.users.controller.dto.UsersResponse;
-import redcode.bookanddrive.auth_server.users.repository.UsersRepository;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -50,10 +49,6 @@ public class UsersIntegrationTest {
 
     @Autowired
     TestRestTemplate restTemplate;
-    @Autowired
-    TenantsRepository tenantsRepository;
-    @Autowired
-    UsersRepository usersRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
 
@@ -92,6 +87,57 @@ public class UsersIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-Tenant-Id", "testTenant");
+        headers.set("Authorization", "Bearer " + jwt);
+
+
+        // Create HTTP request entity with headers
+        HttpEntity<CreateUserRequest> requestEntity = new HttpEntity<>(request, headers);
+
+        var response = restTemplate.exchange(
+            "/api/users",
+            HttpMethod.POST,
+            requestEntity,
+            UsersResponse.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().id()).isNotNull();
+        assertThat(response.getBody().firstName()).isEqualTo(request.getFirstName());
+        assertThat(response.getBody().lastName()).isEqualTo(request.getLastName());
+        assertThat(response.getBody().email()).isEqualTo(request.getEmail());
+        assertThat(response.getBody().tenantId()).isNotNull();
+        assertThat(response.getBody().isActive()).isFalse();
+        assertThat(response.getBody().roleIds()).isNullOrEmpty();
+    }
+
+    @Test()
+    @Named(value = "Create user - super admin access different tenant")
+    void createUser_superAdminDifferentTenant() throws Exception {
+        CreateUserRequest request = new CreateUserRequest(
+            "test", "lastname", "user@email.com", Set.of()
+        );
+        var username = "test@example.com";
+        var password = "testPassword";
+
+        tenantData.put("name", "testTenant");
+        var tenant = tenantDataGenerator.persistTenantEntity(tenantData);
+        tenantData.put("name", "testTenant2");
+        var tenant2 = tenantDataGenerator.persistTenantEntity(tenantData);
+
+        userData.putAll(Map.of(
+            "email", username,
+            "password", passwordEncoder.encode(password),
+            "firstName", "Jon",
+            "lastName", "Doe",
+            "roles", Set.of(SUPER_ADMIN, USERS_WRITE),
+            "tenant", tenant));
+        var user = userDataGenerator.persistUserEntity(userData);
+
+        // Setting different tenant than the super admin tenant
+        String jwt = getJwtForUser(username, password);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Tenant-Id", "testTenant2");
         headers.set("Authorization", "Bearer " + jwt);
 
 

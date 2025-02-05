@@ -41,10 +41,10 @@ public class PasswordsFacade {
 
         passwordValidationService.validate(newPassword, confirmPassword);
 
-        OneTimeToken existingToken = oneTimeTokensService.findByUserEmailAndTenant(userEmail, tenantName);
-        tokenValidationService.validate(requestToken, existingToken);
-
         try {
+            OneTimeToken existingToken = oneTimeTokensService.findByUserEmailAndTenant(userEmail, tenantName);
+            tokenValidationService.validate(requestToken, existingToken);
+
             String encodedPassword = passwordEncoder.encode(newPassword);
             log.info("Resetting password for email: {}", userEmail);
             usersService.updatePassword(existingToken.getUser(), encodedPassword);
@@ -52,7 +52,10 @@ public class PasswordsFacade {
             requestToken.use();
             oneTimeTokensService.save(requestToken);
         } catch (ResourceNotFoundException e) {
-            log.error("Could not find user from the token: {}", userEmail);
+            log.error(
+                "Could not find user from the token or token does not belong to the user and tenant: {}, {}",
+                userEmail, tenantName
+            );
             throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
         }
     }
