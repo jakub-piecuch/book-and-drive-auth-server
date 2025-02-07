@@ -1,9 +1,10 @@
 package redcode.bookanddrive.auth_server.passwords.controller;
 
+import static java.util.Objects.isNull;
 import static redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException.INVALID_REQUEST_HEADER;
 
 import jakarta.validation.Valid;
-import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 import redcode.bookanddrive.auth_server.auth.token.AuthenticationToken;
 import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException;
+import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
 import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
+import redcode.bookanddrive.auth_server.tenants.model.Tenant;
+import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 
 @Slf4j
 @RestController()
@@ -28,21 +32,29 @@ import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
 public class PasswordsController {
 
     private final PasswordsFacade passwordsFacade;
+    private final TenantsService tenantsService;
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
         @RequestParam("email") String email
     ) throws FailedEmailException {
-        String tenant = Optional.ofNullable(TenantContext.getTenantId())
-                .orElseThrow(() -> {
-                    log.error("Tenant header is empty.");
-                    return InvalidRequestHeaderException.of(INVALID_REQUEST_HEADER);
-                });
+        String tenantName = TenantContext.getTenantId();
+        if (isNull(tenantName)) {
+            log.error("Tenant header is empty.");
+            throw InvalidRequestHeaderException.of(INVALID_REQUEST_HEADER);
+        }
 
-        passwordsFacade.sendForgotPasswordEmailFor(email, tenant);
+        Tenant tenant = tenantsService.getTenantByName(tenantName);
 
-        return ResponseEntity.ok()
-            .build();
+        try {
+            passwordsFacade.sendForgotPasswordEmailFor(email, tenant.getId());
+            return ResponseEntity.ok()
+                .build();
+        } catch (ResourceNotFoundException e) {
+            log.warn("User with email: {}, was not found in the system to send reset password link.", email);
+            return ResponseEntity.ok()
+                .build();
+        }
     }
 
     @PostMapping("/reset")
@@ -53,9 +65,11 @@ public class PasswordsController {
         String userEmail = authToken.getUsername();
         String tenantName = authToken.getTenant();
         String token = authToken.getToken().replace("Bearer ", "");
+        UUID tenantId = authToken.getTenantId();
         OneTimeToken requestToken = OneTimeToken.buildRequestToken(
             userEmail,
             tenantName,
+            tenantId,
             token
         );
 

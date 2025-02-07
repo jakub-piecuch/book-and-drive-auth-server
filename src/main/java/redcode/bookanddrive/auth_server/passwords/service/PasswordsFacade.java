@@ -1,5 +1,6 @@
 package redcode.bookanddrive.auth_server.passwords.service;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,14 +38,14 @@ public class PasswordsFacade {
         String newPassword = passwordResetRequest.newPassword();
         String confirmPassword = passwordResetRequest.confirmPassword();
         String userEmail = requestToken.getUser().getEmail();
-        String tenantName = requestToken.getUser().getTenantName();
+        UUID tenantId = requestToken.getUser().getTenantId();
 
         passwordValidationService.validate(newPassword, confirmPassword);
 
-        OneTimeToken existingToken = oneTimeTokensService.findByUserEmailAndTenant(userEmail, tenantName);
-        tokenValidationService.validate(requestToken, existingToken);
-
         try {
+            OneTimeToken existingToken = oneTimeTokensService.findByUserEmailAndTenantId(userEmail, tenantId);
+            tokenValidationService.validate(requestToken, existingToken);
+
             String encodedPassword = passwordEncoder.encode(newPassword);
             log.info("Resetting password for email: {}", userEmail);
             usersService.updatePassword(existingToken.getUser(), encodedPassword);
@@ -52,14 +53,17 @@ public class PasswordsFacade {
             requestToken.use();
             oneTimeTokensService.save(requestToken);
         } catch (ResourceNotFoundException e) {
-            log.error("Could not find user from the token: {}", userEmail);
+            log.error(
+                "Could not find user from the token or token does not belong to the user and tenantId: {}, {}",
+                userEmail, tenantId
+            );
             throw InvalidTokenException.of(InvalidTokenException.INVALID_TOKEN);
         }
     }
 
     @Transactional
-    public void sendForgotPasswordEmailFor(String email, String tenant) throws FailedEmailException {
-        User existingUser = usersService.findByUsernameAndTenantName(email, tenant);
+    public void sendForgotPasswordEmailFor(String email, UUID tenantId) throws FailedEmailException {
+        User existingUser = usersService.findByUsernameAndTenantId(email, tenantId);
 
         OneTimeToken newTokenWithUser = tokenGenerationService.generateToken(existingUser);
         OneTimeToken savedToken = oneTimeTokensService.save(newTokenWithUser);

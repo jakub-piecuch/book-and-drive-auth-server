@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,7 +36,8 @@ public class JwtUtil {
             .map(GrantedAuthority::getAuthority)
             .toList();
         claims.put("scopes", authorities);
-        claims.put("tenant", userDetails.getTenantName());
+        claims.put("tenantName", userDetails.getTenantName());
+        claims.put("tenantId", userDetails.getTenantId());
 
         return createToken(claims, userDetails.getUsername());
     }
@@ -63,8 +65,12 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public String extractTenantFromToken(String token) {
-        return extractClaim(token, JwtUtil::getTenant);
+    public String extractTenantNameFromToken(String token) {
+        return extractClaim(token, JwtUtil::getTenantName);
+    }
+
+    public UUID extractTenantIdFromToken(String token) {
+        return UUID.fromString(extractClaim(token, JwtUtil::getTenantId));
     }
 
     public LocalDateTime extractExpirationDate(String token) {
@@ -77,7 +83,8 @@ public class JwtUtil {
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsernameFromToken(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return username.equals(userDetails.getUsername())
+            && !isTokenExpired(token);
     }
 
     private Date extractExpiration(String token) {
@@ -88,7 +95,11 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public static String getTenant(Claims claims) {
-        return (String) claims.get("tenant");
+    public static String getTenantName(Claims claims) {
+        return (String) claims.get("tenantName");
+    }
+
+    public static String getTenantId(Claims claims) {
+        return (String) claims.get("tenantId");
     }
 }

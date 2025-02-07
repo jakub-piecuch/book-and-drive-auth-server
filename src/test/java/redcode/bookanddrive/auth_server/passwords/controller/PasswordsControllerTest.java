@@ -11,12 +11,15 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static redcode.bookanddrive.auth_server.data_generator.TenantsGenerator.generateTenant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +29,11 @@ import redcode.bookanddrive.auth_server.exceptions.FailedEmailException;
 import redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
-import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
 import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
+import redcode.bookanddrive.auth_server.tenants.model.Tenant;
+import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 
+@ExtendWith(MockitoExtension.class)
 class PasswordsControllerTest {
 
     @Mock
@@ -36,14 +41,13 @@ class PasswordsControllerTest {
     @Mock
     AuthenticationToken authenticationToken;
     @Mock
-    JwtUtil jwtUtil;
+    TenantsService tenantsService;
 
+    @InjectMocks
     private PasswordsController passwordsController;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        passwordsController = new PasswordsController(passwordsFacade);
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 
@@ -74,6 +78,9 @@ class PasswordsControllerTest {
         try (MockedStatic<TenantContext> mockedStatic = mockStatic(TenantContext.class)) {
             mockedStatic.when(TenantContext::getTenantId).thenReturn("tenant");
             // Act
+            Tenant tenant = generateTenant();
+            when(tenantsService.getTenantByName(any())).thenReturn(tenant);
+
             ResponseEntity<Void> response = passwordsController.forgotPassword(email);
 
             // Assert
@@ -89,7 +96,7 @@ class PasswordsControllerTest {
             .newPassword("test1")
             .confirmPassword("test2")
             .build();
-        
+
         when(authenticationToken.getUsername()).thenReturn("user@example.com");
         when(authenticationToken.getTenant()).thenReturn("testTenant");
         when(authenticationToken.getToken()).thenReturn("Bearer validToken");
@@ -120,6 +127,7 @@ class PasswordsControllerTest {
             .newPassword("test1")
             .confirmPassword("test2")
             .build();
+
         when(authenticationToken.getUsername()).thenReturn("user@example.com");
         when(authenticationToken.getTenant()).thenReturn("testTenant");
         when(authenticationToken.getToken()).thenReturn("Bearer validToken");

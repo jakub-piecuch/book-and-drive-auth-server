@@ -34,14 +34,14 @@ public class AuthController {
 
         var tenant = TenantContext.getTenantId();
 
-        authenticationManager.authenticate(new AuthenticationToken(
+        var authentication = (AuthenticationToken) authenticationManager.authenticate(new AuthenticationToken(
                 authenticationRequest.username(),
                 authenticationRequest.password(),
                 tenant
             )
         );
 
-        final User user = usersService.findByUsernameAndTenantName(authenticationRequest.username(), tenant);
+        final User user = usersService.findByUsernameAndTenantId(authenticationRequest.username(), authentication.getTenantId());
         final String jwt = jwtUtil.generateToken(user);
 
         return ResponseEntity.ok(new AuthenticationResponse(jwt));

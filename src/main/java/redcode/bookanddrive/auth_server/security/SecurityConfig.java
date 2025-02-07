@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import redcode.bookanddrive.auth_server.auth.manager.AuthenticationManagerImpl;
+import redcode.bookanddrive.auth_server.security.jwt.JwtAuthenticationFailureHandler;
 import redcode.bookanddrive.auth_server.security.jwt.JwtAuthenticationFilter;
 import redcode.bookanddrive.auth_server.security.jwt.JwtAuthorizationFilter;
 import redcode.bookanddrive.auth_server.security.jwt.JwtUtil;
@@ -30,11 +32,12 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final UsersService usersService;
     private final AuthenticationManagerImpl authenticationManager;
+    private final JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**"))
+        return http.csrf(CsrfConfigurer::disable)
+            .requiresChannel(customizer -> customizer.anyRequest().requiresSecure())
             .sessionManagement(configurer -> configurer
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
@@ -46,6 +49,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .addFilter(new JwtAuthenticationFilter(authenticationManager, jwtUtil))
             .addFilter(new JwtAuthorizationFilter(authenticationManager, jwtUtil, usersService))
+            .exceptionHandling(configurer -> configurer
+                .authenticationEntryPoint(jwtAuthenticationFailureHandler))
             .build();
     }
 

@@ -71,4 +71,8 @@ public class User implements UserDetails {
     public String getTenantName() {
         return this.tenant.getName();
     }
+
+    public UUID getTenantId() {
+        return this.tenant.getId();
+    }
 }

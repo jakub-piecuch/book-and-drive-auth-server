@@ -2,6 +2,7 @@ package redcode.bookanddrive.auth_server.users.service;
 
 import static redcode.bookanddrive.auth_server.exceptions.UserAlreadyExistsException.USER_ALREADY_EXISTS;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,10 +36,11 @@ public class UsersFacade {
     public User createUserWithTemporaryPassword(User user) throws FailedEmailException {
         String userName = user.getUsername();
         String tenantName = user.getTenantName();
+        UUID tenantId = user.getTenantId();
         String password = PasswordGenerator.generatePassword(12);
 
         try {
-            usersService.findByUsernameAndTenantName(userName, tenantName);
+            usersService.findByUsernameAndTenantId(userName, tenantId);
             throw UserAlreadyExistsException.of(USER_ALREADY_EXISTS);
         } catch (ResourceNotFoundException e) {
             Tenant tenant = tenantsService.getTenantByName(tenantName);
@@ -54,7 +56,7 @@ public class UsersFacade {
             emailService.sendPasswordResetEmail(oneTimeToken);
 
             // TODO do wyrzucenia jak beda dzialac emaile
-            log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken);
+            log.info("hej tutaj: {}/api/passwords/reset?token={}", createdUser.getEmail(), oneTimeToken.getToken());
 
             return createdUser;
         }

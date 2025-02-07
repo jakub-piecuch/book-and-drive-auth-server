@@ -47,7 +47,7 @@ class TenantsControllerTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(201, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(request.name(), response.getBody().name());
 

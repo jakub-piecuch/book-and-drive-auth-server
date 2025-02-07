@@ -11,18 +11,25 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+  flyway:
+    baselineOnMigrate: true
+    locations: classpath:db/migration
+    schema: public
 
 logging:
   pattern:
     correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
 
 server:
-  port: 8083
+  port: 8443
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: classpath:.keystore
+    key-store-password: bookanddrive!
+    key-alias: authapp
 
 jwt:
   secret: quBpmybUJ8U1cFc+9AevnmWg70OoJhxkAEWoY1iSOVwXXKn/QPG12OMm3z1iPSi7BvN6QzCwQaHFXW3TEtUBHxnbrMNMQgvZo6g4y1LGbPizPGnGnLGYLRJyQLJomX0KWJpexbACd0NkMlIe3QxoxTIfX/9kbCyxMgar28Mb5IqNpu7xXYXNSRKkujUj0T1T9/5RTmSKRYVwpjmq0JumTuG3MH9RwPe/y0omblAlo8eNXJVph1m396xjgZqrdBXiwk9QJJF88FubtByNaCZeNCbw0UjQ3gnlocW939ML2D6Zknp6gm8nXFbmuSRRDHgFxTUBP68/sCMk2J9gZgCwDMMpEU5BPpuXhWobDTjsJqI=

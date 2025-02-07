@@ -55,7 +55,7 @@ class UsersServiceTest {
         UserEntity existingUser = generateUserEntity();
         User mockUser = generateUser();
 
-        when(usersRepository.findByEmailAndTenantName(any(), any())).thenReturn(Optional.of(existingUser));
+        when(usersRepository.findByEmailAndTenantId(any(), any())).thenReturn(Optional.of(existingUser));
         when(usersRepository.save(any(UserEntity.class))).thenReturn(existingUser);
 
         // Act
@@ -73,29 +73,12 @@ class UsersServiceTest {
         String newPassword = "newPassword";
         User mockUser = generateUser();
 
-        when(usersRepository.findByEmailAndTenantName(any(), any())).thenReturn(Optional.empty());
+        when(usersRepository.findByEmailAndTenantId(any(), any())).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class,
             () -> usersService.updatePassword(mockUser, newPassword));
     }
-
-//    @Test
-//    void testGetUsers() {
-//        // Arrange
-//        List<UserEntity> userEntities = List.of(
-//            generateUserEntity(),
-//            generateUserEntity().toBuilder().email("test2@gmail.com").build()
-//        );
-//
-//        when(usersRepository.findAll()).thenReturn(userEntities);
-//
-//        // Act
-//        List<User> users = usersService.getUsers();
-//
-//        // Assert
-//        assertEquals(userEntities.size(), users.size());
-//    }
 
     @Test
     void testFindById() {
@@ -128,10 +111,10 @@ class UsersServiceTest {
         String email = "test@example.com";
         UserEntity userEntity = generateUserEntity();
 
-        when(usersRepository.findByEmailAndTenantName(any(), any())).thenReturn(Optional.of(userEntity));
+        when(usersRepository.findByEmailAndTenantId(any(), any())).thenReturn(Optional.of(userEntity));
 
         // Act
-        User user = usersService.findByUsernameAndTenantName(email, userEntity.getTenant().getName());
+        User user = usersService.findByUsernameAndTenantId(email, userEntity.getTenant().getId());
 
         // Assert
         assertNotNull(user);
@@ -142,11 +125,11 @@ class UsersServiceTest {
         // Arrange
         String email = "nonexistent@example.com";
 
-        when(usersRepository.findByEmailAndTenantName(any(), any())).thenReturn(Optional.empty());
+        when(usersRepository.findByEmailAndTenantId(any(), any())).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class,
-            () -> usersService.findByUsernameAndTenantName(email, "tenant"));
+            () -> usersService.findByUsernameAndTenantId(email, UUID.randomUUID()));
     }
 
     @Test
