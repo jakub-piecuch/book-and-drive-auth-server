@@ -33,5 +33,5 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run Maven build
-        run: mvn clean install  # Build the project (skip tests if you want to, otherwise remove '-DskipTests')
+        run: mvn clean install
 
