@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException.INVALID_REQUEST_HEADER;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -64,9 +65,11 @@ public class PasswordsController {
         String userEmail = authToken.getUsername();
         String tenantName = authToken.getTenant();
         String token = authToken.getToken().replace("Bearer ", "");
+        UUID tenantId = authToken.getTenantId();
         OneTimeToken requestToken = OneTimeToken.buildRequestToken(
             userEmail,
             tenantName,
+            tenantId,
             token
         );
 

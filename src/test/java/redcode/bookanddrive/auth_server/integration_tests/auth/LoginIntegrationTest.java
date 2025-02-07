@@ -35,7 +35,7 @@ import redcode.bookanddrive.auth_server.integration_tests.date_generator_utils.U
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class LoginIntegrationTest {
+class LoginIntegrationTest {
 
     @Autowired
     TenantDataGenerator tenantDataGenerator;
@@ -220,7 +220,7 @@ public class LoginIntegrationTest {
     @Named(value = "Valid user credential - empty password")
     void userLogin_missingPassword() throws Exception {
         AuthenticationRequest request = new AuthenticationRequest(
-            null, "testPassword"
+            "null", null
         );
 
         HttpHeaders headers = new HttpHeaders();

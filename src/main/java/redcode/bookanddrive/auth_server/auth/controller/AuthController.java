@@ -34,7 +34,7 @@ public class AuthController {
 
         var tenant = TenantContext.getTenantId();
 
-        var authentication = (User) authenticationManager.authenticate(new AuthenticationToken(
+        var authentication = (AuthenticationToken) authenticationManager.authenticate(new AuthenticationToken(
                 authenticationRequest.username(),
                 authenticationRequest.password(),
                 tenant

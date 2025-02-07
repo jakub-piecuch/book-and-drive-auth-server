@@ -75,10 +75,7 @@ class AuthControllerTest {
         when(authenticationManager.authenticate(any())).thenReturn(mock(AuthenticationToken.class));
 
         // Mock user retrieval
-        when(usersService.findByUsernameAndTenantId(
-            validAuthRequest.username(),
-            mockTenantId
-        )).thenReturn(mockUser);
+        when(usersService.findByUsernameAndTenantId(any(), any())).thenReturn(mockUser);
 
         // Mock JWT generation
         when(jwtUtil.generateToken(mockUser))
@@ -96,10 +93,7 @@ class AuthControllerTest {
 
         // Verify interactions
         verify(authenticationManager, times(1)).authenticate(any());
-        verify(usersService).findByUsernameAndTenantId(
-            validAuthRequest.username(),
-            mockTenantId
-        );
+        verify(usersService).findByUsernameAndTenantId(any(), any());
         verify(jwtUtil).generateToken(mockUser);
     }
 

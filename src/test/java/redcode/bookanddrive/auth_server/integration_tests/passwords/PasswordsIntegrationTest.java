@@ -41,7 +41,7 @@ import redcode.bookanddrive.auth_server.users.model.User;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class PasswordsIntegrationTest {
+class PasswordsIntegrationTest {
 
     @LocalServerPort
     String port;
@@ -71,6 +71,7 @@ public class PasswordsIntegrationTest {
 
     @BeforeEach
     void clearDatabase(@Autowired JdbcTemplate jdbcTemplate) {
+
         JdbcTestUtils.deleteFromTables(jdbcTemplate, "one_time_token");
         JdbcTestUtils.deleteFromTables(jdbcTemplate, "_user");
         JdbcTestUtils.deleteFromTables(jdbcTemplate, "tenant");
@@ -113,7 +114,7 @@ public class PasswordsIntegrationTest {
     }
 
     @Test
-    @Named(value = "Forgot password - success")
+    @Named(value = "Forgot password - no tenant header")
     void forgotPassword_noTenantHeader() {
         var username = "test@example.com";
         var password = "testPassword";
@@ -137,7 +138,7 @@ public class PasswordsIntegrationTest {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         var response = restTemplate.exchange(
-            PASSWORDS_URI + "/forgot-password?email=" + username,
+            "https://localhost:" + port + PASSWORDS_URI + "/forgot-password?email=" + username,
             HttpMethod.POST,
             requestEntity,
             ErrorDetails.class
@@ -174,7 +175,7 @@ public class PasswordsIntegrationTest {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         var response = restTemplate.exchange(
-            PASSWORDS_URI + "/forgot-password?email=notexistinguser@gmail.com",
+            "https://localhost:" + port + PASSWORDS_URI + "/forgot-password?email=notexistinguser@gmail.com",
             HttpMethod.POST,
             requestEntity,
             Void.class
@@ -277,7 +278,7 @@ public class PasswordsIntegrationTest {
         HttpEntity<PasswordResetRequest> requestEntity = new HttpEntity<>(request, headers);
 
         var response = restTemplate.exchange(
-            PASSWORDS_URI + "/reset",
+            "https://localhost:" + port + PASSWORDS_URI + "/reset",
             HttpMethod.POST,
             requestEntity,
             String.class
@@ -302,7 +303,7 @@ public class PasswordsIntegrationTest {
         HttpEntity<CreateUserRequest> requestEntity = new HttpEntity<>(request, headers);
 
         var response = restTemplate.exchange(
-            "/api/users",
+            "https://localhost:" + port + "/api/users",
             HttpMethod.POST,
             requestEntity,
             UsersResponse.class
@@ -322,7 +323,7 @@ public class PasswordsIntegrationTest {
         HttpEntity<AuthenticationRequest> requestEntity = new HttpEntity<>(request, headers);
 
         var response = restTemplate.exchange(
-            "/api/auth/login",
+            "https://localhost:" + port + "/api/auth/login",
             HttpMethod.POST,
             requestEntity,
             AuthenticationResponse.class

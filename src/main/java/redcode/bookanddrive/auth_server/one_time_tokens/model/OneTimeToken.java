@@ -38,11 +38,12 @@ public class OneTimeToken {
             .build();
     }
 
-    public static OneTimeToken buildRequestToken(String userEmail, String tenantName, String token) {
+    public static OneTimeToken buildRequestToken(String userEmail, String tenantName, UUID tenantId, String token) {
         return OneTimeToken.builder()
             .user(User.builder()
                 .email(userEmail)
                 .tenant(Tenant.builder()
+                    .id(tenantId)
                     .name(tenantName)
                     .build())
                 .build())
