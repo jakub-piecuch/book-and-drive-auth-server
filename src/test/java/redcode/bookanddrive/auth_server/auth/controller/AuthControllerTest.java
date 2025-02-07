@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,13 +47,15 @@ class AuthControllerTest {
 
     private AuthenticationRequest validAuthRequest;
     private User mockUser;
-    private String mockTenantId;
+    private String mockTenantName;
+    private UUID mockTenantId;
 
     @BeforeEach
     void setUp() {
         // Set up test data
-        mockTenantId = "test-tenant";
-        TenantContext.setTenantId(mockTenantId);
+        mockTenantName = "test-tenant";
+        mockTenantId = UUID.randomUUID();
+        TenantContext.setTenantId(mockTenantName);
 
         validAuthRequest = new AuthenticationRequest(
             "testuser@example.com",
@@ -72,7 +75,7 @@ class AuthControllerTest {
         when(authenticationManager.authenticate(any())).thenReturn(mock(AuthenticationToken.class));
 
         // Mock user retrieval
-        when(usersService.findByUsernameAndTenantName(
+        when(usersService.findByUsernameAndTenantId(
             validAuthRequest.username(),
             mockTenantId
         )).thenReturn(mockUser);
@@ -93,7 +96,7 @@ class AuthControllerTest {
 
         // Verify interactions
         verify(authenticationManager, times(1)).authenticate(any());
-        verify(usersService).findByUsernameAndTenantName(
+        verify(usersService).findByUsernameAndTenantId(
             validAuthRequest.username(),
             mockTenantId
         );

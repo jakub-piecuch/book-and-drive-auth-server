@@ -63,7 +63,7 @@ class OneTimeTokensServiceTest {
     }
 
     @Test
-    void testFindByUserEmailAndTenant_Success() {
+    void testFindByUserEmailAndTenant_Id_Success() {
         // Given
         User user = generateUser();
         OneTimeToken oneTimeToken = OneTimeToken.builder()
@@ -73,27 +73,27 @@ class OneTimeTokensServiceTest {
             .build();
         OneTimeTokenEntity oneTimeTokenEntity = OneTimeTokenEntity.from(oneTimeToken); // Assuming default constructor exists
 
-        when(oneTimeTokenRepository.findByUserEmailAndUserTenantName(any(), any())).thenReturn(Optional.of(oneTimeTokenEntity));
+        when(oneTimeTokenRepository.findByUserEmailAndUserTenantId(any(), any())).thenReturn(Optional.of(oneTimeTokenEntity));
 
         // When
-        OneTimeToken result = oneTimeTokensService.findByUserEmailAndTenant(any(), any());
+        OneTimeToken result = oneTimeTokensService.findByUserEmailAndTenantId(any(), any());
 
         // Then
         assertNotNull(result);
-        verify(oneTimeTokenRepository, times(1)).findByUserEmailAndUserTenantName(any(), any());
+        verify(oneTimeTokenRepository, times(1)).findByUserEmailAndUserTenantId(any(), any());
     }
 
     @Test
-    void testFindByUserEmailAndTenant_NotFound() {
+    void testFindByUserEmailAndTenant_Id_NotFound() {
         // Given
-        when(oneTimeTokenRepository.findByUserEmailAndUserTenantName(any(), any()))
+        when(oneTimeTokenRepository.findByUserEmailAndUserTenantId(any(), any()))
             .thenReturn(Optional.empty());
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-            () -> oneTimeTokensService.findByUserEmailAndTenant(any(), any()));
+            () -> oneTimeTokensService.findByUserEmailAndTenantId(any(), any()));
 
         assertEquals(ResourceNotFoundException.RESOURCE_NOT_FOUND, exception.getMessage());
-        verify(oneTimeTokenRepository, times(1)).findByUserEmailAndUserTenantName(any(), any());
+        verify(oneTimeTokenRepository, times(1)).findByUserEmailAndUserTenantId(any(), any());
     }
 }

@@ -63,7 +63,7 @@ class UsersFacadeTest {
             .build();
 
         // Mock dependencies
-        when(usersService.findByUsernameAndTenantName(any(), any()))
+        when(usersService.findByUsernameAndTenantId(any(), any()))
             .thenThrow(ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND));
         when(passwordEncoder.encode(any())).thenReturn("encodedNewPassword");
         when(tenantsService.getTenantByName(any())).thenReturn(inputUser.getTenant());
@@ -96,7 +96,7 @@ class UsersFacadeTest {
             .build();
 
         // Mock dependencies
-        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(savedUser);
+        when(usersService.findByUsernameAndTenantId(any(), any())).thenReturn(savedUser);
         // Act
         assertThrows(UserAlreadyExistsException.class, () -> usersFacade.createUserWithTemporaryPassword(inputUser));
 

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static redcode.bookanddrive.auth_server.data_generator.TenantsGenerator.generateTenant;
 import static redcode.bookanddrive.auth_server.data_generator.UsersGenerator.generateUser;
 
 import java.util.Set;
@@ -28,6 +29,8 @@ import redcode.bookanddrive.auth_server.exceptions.PasswordsMismatchException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.exceptions.UserDoesNotExistException;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordValidationService;
+import redcode.bookanddrive.auth_server.tenants.model.Tenant;
+import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.service.UsersService;
 
@@ -35,16 +38,17 @@ import redcode.bookanddrive.auth_server.users.service.UsersService;
 class AuthenticationManagerImplTest {
 
     @Mock
-    private UsersService usersService;
-
+    UsersService usersService;
     @Mock
-    private PasswordValidationService passwordValidationService;
+    TenantsService tenantsService;
+    @Mock
+    PasswordValidationService passwordValidationService;
 
     @InjectMocks
-    private AuthenticationManagerImpl authenticationManager;
+    AuthenticationManagerImpl authenticationManager;
 
-    private AuthenticationToken authenticationToken;
-    private User user;
+    AuthenticationToken authenticationToken;
+    User user;
 
     @BeforeEach
     void setUp() {
@@ -55,6 +59,7 @@ class AuthenticationManagerImplTest {
             user.getPassword(),
             Set.of(),
             user.getTenantName(),
+            user.getTenantId(),
             "someToken"
         );
     }
@@ -64,6 +69,10 @@ class AuthenticationManagerImplTest {
         // Arrange
         AuthenticationToken authenticationToken = mock(AuthenticationToken.class);
 
+        Tenant tenant = generateTenant();
+
+        when(tenantsService.getTenantByName(any())).thenReturn(tenant);
+
         // Mock the necessary method calls
         when(authenticationToken.getName()).thenReturn("testuser");
         when(authenticationToken.getTenant()).thenReturn("testTenant");
@@ -72,11 +81,9 @@ class AuthenticationManagerImplTest {
         when(authenticationToken.getCredentials()).thenReturn("rawPassword");
 
         // Rest of the test remains the same
-        when(usersService.findByUsernameAndTenantName("testuser", "testTenant"))
-            .thenReturn(user);
+        when(usersService.findByUsernameAndTenantId(any(), any())).thenReturn(user);
 
-        doNothing().when(passwordValidationService)
-            .validateEncoded("rawPassword", null);
+        doNothing().when(passwordValidationService).validateEncoded("rawPassword", null);
 
         // Act
         Authentication result = authenticationManager.authenticate(authenticationToken);
@@ -91,20 +98,24 @@ class AuthenticationManagerImplTest {
         assertEquals("tenant", resultToken.getTenant());
 
         // Verify service interactions
-        verify(usersService, times(1)).findByUsernameAndTenantName(any(), any());
+        verify(usersService, times(1)).findByUsernameAndTenantId(any(), any());
         verify(passwordValidationService, times(1)).validateEncoded(any(), any());
     }
 
     @Test
     void authenticate_UserNotFound() {
         AuthenticationToken authenticationToken = mock(AuthenticationToken.class);
+        Tenant tenant = generateTenant();
+
+        when(tenantsService.getTenantByName(any())).thenReturn(tenant);
+
         // Arrange
         when(authenticationToken.getName()).thenReturn("testuser");
         when(authenticationToken.getTenant()).thenReturn("testTenant");
 
         // Create a custom credentials object or use a specific method to extract credentials
         when(authenticationToken.getCredentials()).thenReturn("rawPassword");
-        when(usersService.findByUsernameAndTenantName(any(), any()))
+        when(usersService.findByUsernameAndTenantId(any(), any()))
             .thenThrow(ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND));
 
         // Act & Assert
@@ -115,20 +126,23 @@ class AuthenticationManagerImplTest {
         assertEquals(UserDoesNotExistException.USER_DOES_NOT_EXIST, exception.getMessage());
 
         // Verify service interactions
-        verify(usersService).findByUsernameAndTenantName("testuser", "testTenant");
+        verify(usersService).findByUsernameAndTenantId(any(), any());
         verifyNoInteractions(passwordValidationService);
     }
 
     @Test
     void authenticate_InvalidPassword() {
         AuthenticationToken authenticationToken = mock(AuthenticationToken.class);
+        Tenant tenant = generateTenant();
+
+        when(tenantsService.getTenantByName(any())).thenReturn(tenant);
         // Arrange
         when(authenticationToken.getName()).thenReturn("testuser");
         when(authenticationToken.getTenant()).thenReturn("testTenant");
 
         // Create a custom credentials object or use a specific method to extract credentials
         when(authenticationToken.getCredentials()).thenReturn("rawPassword");
-        when(usersService.findByUsernameAndTenantName(any(), any()))
+        when(usersService.findByUsernameAndTenantId(any(), any()))
             .thenReturn(user);
 
         doThrow(PasswordsMismatchException.of(PasswordsMismatchException.PASSWORD_MISMATCH))
@@ -143,7 +157,7 @@ class AuthenticationManagerImplTest {
         assertEquals("Invalid username or password", exception.getMessage());
 
         // Verify service interactions
-        verify(usersService).findByUsernameAndTenantName("testuser", "testTenant");
+        verify(usersService).findByUsernameAndTenantId(any(), any());
         verify(passwordValidationService).validateEncoded("rawPassword", null);
     }
 

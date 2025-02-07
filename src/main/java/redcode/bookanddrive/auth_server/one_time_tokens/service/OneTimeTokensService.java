@@ -1,5 +1,6 @@
 package redcode.bookanddrive.auth_server.one_time_tokens.service;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,9 @@ public class OneTimeTokensService {
     private final OneTimeTokenRepository oneTimeTokenRepository;
 
     public OneTimeToken save(OneTimeToken token) {
-        return oneTimeTokenRepository.findByUserEmailAndUserTenantName(
+        return oneTimeTokenRepository.findByUserEmailAndUserTenantId(
                 token.getUser().getEmail(),
-                token.getUser().getTenantName()
+                token.getUser().getTenantId()
             )
             .map(entity -> entity.toBuilder()
                 .token(token.getToken())
@@ -32,8 +33,8 @@ public class OneTimeTokensService {
             });
     }
 
-    public OneTimeToken findByUserEmailAndTenant(String email, String tenantName) {
-        return oneTimeTokenRepository.findByUserEmailAndUserTenantName(email, tenantName)
+    public OneTimeToken findByUserEmailAndTenantId(String email, UUID tenantId) {
+        return oneTimeTokenRepository.findByUserEmailAndUserTenantId(email, tenantId)
             .map(OneTimeToken::from)
             .orElseThrow(() -> {
                 log.error("Token does not exist in the database.");

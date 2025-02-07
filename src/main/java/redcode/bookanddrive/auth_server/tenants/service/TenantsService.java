@@ -44,6 +44,9 @@ public class TenantsService {
         log.info("Searching for tenant by name: {}", name);
         return tenantsRepository.findByName(name)
             .map(Tenant::from)
-            .orElseThrow(() -> ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND));
+            .orElseThrow(() -> {
+                log.error("Tenant not found: {}", name);
+                return ResourceNotFoundException.of(ResourceNotFoundException.RESOURCE_NOT_FOUND);
+            });
     }
 }

@@ -12,6 +12,8 @@ import redcode.bookanddrive.auth_server.exceptions.PasswordsMismatchException;
 import redcode.bookanddrive.auth_server.exceptions.ResourceNotFoundException;
 import redcode.bookanddrive.auth_server.exceptions.UserDoesNotExistException;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordValidationService;
+import redcode.bookanddrive.auth_server.tenants.model.Tenant;
+import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 import redcode.bookanddrive.auth_server.users.model.User;
 import redcode.bookanddrive.auth_server.users.service.UsersService;
 
@@ -21,6 +23,7 @@ import redcode.bookanddrive.auth_server.users.service.UsersService;
 public class AuthenticationManagerImpl implements AuthenticationManager {
 
     private final UsersService usersService;
+    private final TenantsService tenantsService;
     private final PasswordValidationService passwordValidationService;
 
     @Override
@@ -33,13 +36,15 @@ public class AuthenticationManagerImpl implements AuthenticationManager {
 
         // Load user by username AND tenant
         try {
-            User userDetails = usersService.findByUsernameAndTenantName(username, tenant);
+            Tenant tenantDetails = tenantsService.getTenantByName(tenant);
+            User userDetails = usersService.findByUsernameAndTenantId(username, tenantDetails.getId());
             passwordValidationService.validateEncoded(password, userDetails.getPassword());
             return new AuthenticationToken(
                 userDetails.getUsername(),
                 userDetails.getPassword(),
                 userDetails.getAuthorities(),
                 userDetails.getTenantName(),
+                tenantDetails.getId(),
                 ((AuthenticationToken) authentication).getToken()
             );
         } catch (ResourceNotFoundException e) {

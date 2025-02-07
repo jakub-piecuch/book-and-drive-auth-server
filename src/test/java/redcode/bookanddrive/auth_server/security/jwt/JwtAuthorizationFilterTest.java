@@ -13,6 +13,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -85,9 +86,10 @@ class JwtAuthorizationFilterTest {
         when(request.getHeader("Authorization")).thenReturn(VALID_TOKEN);
         User user = User.builder().email(USERNAME).password("").roles(Set.of(USERS_READ)).build();
         when(jwtUtil.extractUsernameFromToken(VALID_TOKEN.replace("Bearer ", ""))).thenReturn(USERNAME);
-        when(jwtUtil.extractTenantFromToken(VALID_TOKEN.replace("Bearer ", ""))).thenReturn("testTenant");
+        when(jwtUtil.extractTenantNameFromToken(VALID_TOKEN.replace("Bearer ", ""))).thenReturn("testTenant");
+        when(jwtUtil.extractTenantIdFromToken(VALID_TOKEN.replace("Bearer ", ""))).thenReturn(UUID.randomUUID());
         when(jwtUtil.validateToken(VALID_TOKEN.replace("Bearer ", ""), user)).thenReturn(true);
-        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
+        when(usersService.findByUsernameAndTenantId(any(), any())).thenReturn(user);
 
         // Act
         jwtAuthorizationFilter.doFilterInternal(request, response, chain);

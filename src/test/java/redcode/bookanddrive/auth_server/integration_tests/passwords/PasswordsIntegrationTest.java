@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +42,9 @@ import redcode.bookanddrive.auth_server.users.model.User;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PasswordsIntegrationTest {
+
+    @LocalServerPort
+    String port;
 
     static final String PASSWORDS_URI = "/api/passwords";
 
@@ -98,7 +102,7 @@ public class PasswordsIntegrationTest {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         var response = restTemplate.exchange(
-            PASSWORDS_URI + "/forgot-password?email=" + username,
+            "https://localhost:" + port + PASSWORDS_URI + "/forgot-password?email=" + username,
             HttpMethod.POST,
             requestEntity,
             Void.class

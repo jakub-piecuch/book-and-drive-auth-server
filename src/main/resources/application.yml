@@ -22,12 +22,6 @@ logging:
   pattern:
     correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
 
-  #  server.port=8443
-  #server.ssl.enabled=true
-  #server.ssl.key-store-type=PKCS12
-  #server.ssl.key-store=classpath:keystore.p12
-  #server.ssl.key-store-password=your_keystore_password
-  #server.ssl.key-alias=myapp
 server:
   port: 8443
   ssl:

@@ -62,7 +62,7 @@ class PasswordsFacadeTest {
             .confirmPassword("newPassword")
             .build();
 
-        when(oneTimeTokensService.findByUserEmailAndTenant(any(), any())).thenReturn(token);
+        when(oneTimeTokensService.findByUserEmailAndTenantId(any(), any())).thenReturn(token);
         when(passwordEncoder.encode(any())).thenReturn("encodedPass");
         when(oneTimeTokensService.save(any())).thenReturn(token);
         when(usersService.updatePassword(any(), any())).thenReturn(null);
@@ -87,7 +87,7 @@ class PasswordsFacadeTest {
             .build();
         PasswordResetRequest passwordResetRequest = new PasswordResetRequest("newPassword", "newPassword");
 
-        when(oneTimeTokensService.findByUserEmailAndTenant(any(), any())).thenReturn(token);
+        when(oneTimeTokensService.findByUserEmailAndTenantId(any(), any())).thenReturn(token);
         when(usersService.updatePassword(any(), any())).thenThrow(ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
 
         assertThrows(InvalidTokenException.class, () ->
@@ -105,15 +105,15 @@ class PasswordsFacadeTest {
             .token(jwtUtil.generateToken(user))
             .build();
         // Given: Prepare inputs and mocked data
-        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
+        when(usersService.findByUsernameAndTenantId(any(), any())).thenReturn(user);
         when(tokenGenerationService.generateToken(any(User.class))).thenReturn(token);
         when(oneTimeTokensService.save(any(OneTimeToken.class))).thenReturn(token);
 
         // When: Call the method
-        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantName());
+        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantId());
 
         // Then: Verify interactions and expected behavior
-        verify(usersService, times(1)).findByUsernameAndTenantName(any(), any());
+        verify(usersService, times(1)).findByUsernameAndTenantId(any(), any());
         verify(tokenGenerationService, times(1)).generateToken(any(User.class));
         verify(oneTimeTokensService, times(1)).save(any(OneTimeToken.class));
     }
@@ -126,15 +126,15 @@ class PasswordsFacadeTest {
             .token(jwtUtil.generateToken(user))
             .build();
         // Given: Prepare inputs and mocked data
-        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
+        when(usersService.findByUsernameAndTenantId(any(), any())).thenReturn(user);
         when(tokenGenerationService.generateToken(any(User.class))).thenReturn(token);
         when(oneTimeTokensService.save(any(OneTimeToken.class))).thenReturn(token);
 
         // When: Call the method
-        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantName());
+        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantId());
 
         // Then: Verify interactions and expected behavior
-        verify(usersService, times(1)).findByUsernameAndTenantName(any(), any());
+        verify(usersService, times(1)).findByUsernameAndTenantId(any(), any());
         verify(tokenGenerationService, times(1)).generateToken(any(User.class));
         verify(oneTimeTokensService, times(1)).save(any(OneTimeToken.class));
     }
@@ -147,12 +147,12 @@ class PasswordsFacadeTest {
             .token(jwtUtil.generateToken(user))
             .build();
         // Given: Prepare inputs
-        when(usersService.findByUsernameAndTenantName(any(), any())).thenReturn(user);
+        when(usersService.findByUsernameAndTenantId(any(), any())).thenReturn(user);
         when(tokenGenerationService.generateToken(any(User.class))).thenReturn(token);
         when(oneTimeTokensService.save(any(OneTimeToken.class))).thenReturn(token);
 
         // When: Call the method
-        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantName());
+        passwordsFacade.sendForgotPasswordEmailFor(user.getEmail(), user.getTenantId());
 
         // Then: Verify interactions, the exception is caught and handled gracefully
         verify(tokenGenerationService, times(1)).generateToken(any(User.class));

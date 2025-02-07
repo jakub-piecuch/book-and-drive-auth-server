@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,10 +52,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         AuthenticationToken authentication = null;
         if (nonNull(token)) {
             String username = jwtUtil.extractUsernameFromToken(token.replace(BEARER_PREFIX, ""));
-            String tenantFromJwt = jwtUtil.extractTenantFromToken(token.replace(BEARER_PREFIX, ""));
+            String tenantFromJwt = jwtUtil.extractTenantNameFromToken(token.replace(BEARER_PREFIX, ""));
+            UUID tenantId = jwtUtil.extractTenantIdFromToken(token.replace(BEARER_PREFIX, ""));
 
-            if (nonNull(username) && nonNull(tenantFromJwt)) {
-                User userDetails = usersService.findByUsernameAndTenantName(username, tenantFromJwt);
+            if (nonNull(username) && nonNull(tenantFromJwt) && nonNull(tenantId)) {
+                User userDetails = usersService.findByUsernameAndTenantId(username, tenantId);
 
                 if (!Objects.equals(tenantFromHeader, tenantFromJwt)) {
                     if (!userDetails.getRoles().contains(SUPER_ADMIN)) {
@@ -71,6 +73,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                         userDetails.getPassword(),
                         userDetails.getAuthorities(),
                         tenantFromJwt,
+                        tenantId,
                         token
                     );
                 }

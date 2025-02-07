@@ -1,9 +1,9 @@
 package redcode.bookanddrive.auth_server.passwords.controller;
 
+import static java.util.Objects.isNull;
 import static redcode.bookanddrive.auth_server.exceptions.InvalidRequestHeaderException.INVALID_REQUEST_HEADER;
 
 import jakarta.validation.Valid;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +21,8 @@ import redcode.bookanddrive.auth_server.one_time_tokens.model.OneTimeToken;
 import redcode.bookanddrive.auth_server.passwords.controller.dto.PasswordResetRequest;
 import redcode.bookanddrive.auth_server.passwords.service.PasswordsFacade;
 import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
+import redcode.bookanddrive.auth_server.tenants.model.Tenant;
+import redcode.bookanddrive.auth_server.tenants.service.TenantsService;
 
 @Slf4j
 @RestController()
@@ -29,19 +31,22 @@ import redcode.bookanddrive.auth_server.tenants.context.TenantContext;
 public class PasswordsController {
 
     private final PasswordsFacade passwordsFacade;
+    private final TenantsService tenantsService;
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
         @RequestParam("email") String email
     ) throws FailedEmailException {
-        String tenant = Optional.ofNullable(TenantContext.getTenantId())
-            .orElseThrow(() -> {
-                log.error("Tenant header is empty.");
-                return InvalidRequestHeaderException.of(INVALID_REQUEST_HEADER);
-            });
+        String tenantName = TenantContext.getTenantId();
+        if (isNull(tenantName)) {
+            log.error("Tenant header is empty.");
+            throw InvalidRequestHeaderException.of(INVALID_REQUEST_HEADER);
+        }
+
+        Tenant tenant = tenantsService.getTenantByName(tenantName);
 
         try {
-            passwordsFacade.sendForgotPasswordEmailFor(email, tenant);
+            passwordsFacade.sendForgotPasswordEmailFor(email, tenant.getId());
             return ResponseEntity.ok()
                 .build();
         } catch (ResourceNotFoundException e) {

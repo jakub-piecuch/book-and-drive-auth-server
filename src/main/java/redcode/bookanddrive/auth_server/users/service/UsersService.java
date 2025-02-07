@@ -25,8 +25,8 @@ public class UsersService {
 
     public User updatePassword(User user, String encodedPassword) {
         String userName = user.getUsername();
-        String tenant = user.getTenantName();
-        UserEntity existingUserWithUpdatedPassword = usersRepository.findByEmailAndTenantName(userName, tenant)
+        UUID tenant = user.getTenantId();
+        UserEntity existingUserWithUpdatedPassword = usersRepository.findByEmailAndTenantId(userName, tenant)
             .map(entity -> entity.toBuilder().password(encodedPassword).build())
             .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
 
@@ -76,8 +76,8 @@ public class UsersService {
         return usersRepository.existsById(id);
     }
 
-    public User findByUsernameAndTenantName(String userName, String tenant) {
-        return usersRepository.findByEmailAndTenantName(userName, tenant)
+    public User findByUsernameAndTenantId(String userName, UUID tenantId) {
+        return usersRepository.findByEmailAndTenantId(userName, tenantId)
             .map(User::from)
             .orElseThrow(() -> ResourceNotFoundException.of(RESOURCE_NOT_FOUND));
     }
