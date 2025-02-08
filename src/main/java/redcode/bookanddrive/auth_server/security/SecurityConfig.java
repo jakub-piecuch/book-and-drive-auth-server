@@ -37,6 +37,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(CsrfConfigurer::disable)
+            .oauth2Login(customizer -> customizer.loginPage("http:localhost:3000"))
             .requiresChannel(customizer -> customizer.anyRequest().requiresSecure())
             .sessionManagement(configurer -> configurer
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

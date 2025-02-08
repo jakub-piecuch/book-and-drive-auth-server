@@ -56,3 +56,13 @@ admin-user:
         starttls:
           enable: true
           required: true
+
+  security:
+    oauth2:
+      authorizationserver:
+        client:
+          registration:
+            auth-server:
+              client-id: auth-server
+              client-secret: auth-server-secret
+              authorization-grant-types: authorization_code
