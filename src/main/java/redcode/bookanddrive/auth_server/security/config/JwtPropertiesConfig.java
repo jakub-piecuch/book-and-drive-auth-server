@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.security.jwt;
+package redcode.bookanddrive.auth_server.security.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

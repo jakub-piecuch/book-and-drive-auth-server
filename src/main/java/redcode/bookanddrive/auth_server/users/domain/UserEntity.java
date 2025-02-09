@@ -66,7 +66,7 @@ public class UserEntity implements UserDetails {
     private Set<RoleEnumEntity> roles;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tenant_id", nullable = false)
     private TenantEntity tenant;
 

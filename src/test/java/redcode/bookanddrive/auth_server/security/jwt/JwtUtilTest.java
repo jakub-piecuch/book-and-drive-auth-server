@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
+import redcode.bookanddrive.auth_server.security.config.JwtPropertiesConfig;
 import redcode.bookanddrive.auth_server.users.model.User;
 
 class JwtUtilTest {

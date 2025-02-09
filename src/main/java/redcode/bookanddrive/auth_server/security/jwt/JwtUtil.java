@@ -15,6 +15,7 @@ import javax.crypto.SecretKey;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import redcode.bookanddrive.auth_server.security.config.JwtPropertiesConfig;
 import redcode.bookanddrive.auth_server.users.model.User;
 
 @Component

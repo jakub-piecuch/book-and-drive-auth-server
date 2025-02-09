@@ -1,4 +1,4 @@
-package redcode.bookanddrive.auth_server.security.jwt;
+package redcode.bookanddrive.auth_server.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
